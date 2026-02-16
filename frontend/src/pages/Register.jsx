@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { toast } from "react-toastify";
 import API from "../services/api";
 
 function Register() {
@@ -30,10 +31,12 @@ function Register() {
         city
       });
 
+      toast.success("Registration successful! Please login.");
       navigate("/login");
 
     } catch (error) {
-      console.log(error);
+      const errorMessage = error.response?.data?.message || "Registration failed. Please try again.";
+      toast.error(errorMessage);
     }
   };
 
