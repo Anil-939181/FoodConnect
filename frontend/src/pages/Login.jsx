@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { toast } from "react-toastify";
 import API from "../services/api";
 
 function Login() {
@@ -18,13 +19,13 @@ function Login() {
       });
 
       localStorage.setItem("token", res.data.token);
-      console.log(res.data);
       localStorage.setItem("role", res.data.role);
-
+      toast.success("Login successful!");
       navigate("/dashboard");
 
     } catch (error) {
-      console.log(error);
+      const errorMessage = error.response?.data?.message || "Login failed. Please check your credentials.";
+      toast.error(errorMessage);
     }
   };
 

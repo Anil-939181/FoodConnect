@@ -3,37 +3,65 @@ import API from "../services/api";
 import { toast } from "react-toastify";
 
 function History() {
-  const [data, setData] = useState([]);
   const role = localStorage.getItem("role");
 
-  useEffect(() => {
-    fetchHistory();
-  }, []);
+  const [data, setData] = useState([]);
+  const [activeTab, setActiveTab] = useState("ongoing");
+  const [searchText, setSearchText] = useState("");
+  const [compactView, setCompactView] = useState(false);
+  const [selectedEntry, setSelectedEntry] = useState(null);
 
-  const fetchHistory = async () => {
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+
+  const limit = 5;
+
+  useEffect(() => {
+    fetchHistory(page);
+  }, [page]);
+
+  useEffect(() => {
+  setPage(1);
+}, [activeTab]);
+
+  useEffect(() => {
+  setPage(1);
+}, [activeTab, searchText]);
+
+  const fetchHistory = async (pageNumber = 1) => {
     try {
+      let res;
+
       if (role === "donor") {
-        const res = await API.get("/donations/my/all");
-        setData(res.data);
+        res = await API.get(
+  `/donations/my/all?page=${pageNumber}&limit=${limit}&tab=${activeTab}&search=${searchText}`
+);
+
       } else {
-        const res = await API.get("/requests/history");
-        setData(res.data);
+        res = await API.get(
+  `/requests/history?page=${pageNumber}&limit=${limit}&tab=${activeTab}&search=${searchText}`
+);
+
       }
+
+      setData(res.data.results);
+      setTotalPages(res.data.totalPages);
+
     } catch (error) {
-      toast.error("Error fetching history");
+      toast.error("Error fetching activity");
     }
   };
 
   const handleComplete = async (requestId) => {
     await API.post("/match/complete", { requestId });
     toast.success("Marked as completed");
-    fetchHistory();
+    fetchHistory(page);
   };
 
   const handleCancel = async (requestId) => {
     await API.post("/requests/cancel", { requestId });
     toast.success("Request cancelled");
-    fetchHistory();
+    fetchHistory(page);
   };
 
   const handleApprove = async (donationId, orgId) => {
@@ -42,12 +70,11 @@ function History() {
       organizationId: orgId
     });
     toast.success("Donation approved");
-    fetchHistory();
+    fetchHistory(page);
   };
 
   const getStatusBadge = (status) => {
     const base = "px-3 py-1 text-xs font-semibold rounded-full ";
-
     const colors = {
       available: "bg-gray-200 text-gray-700",
       requested: "bg-blue-100 text-blue-600",
@@ -57,150 +84,246 @@ function History() {
       cancelled: "bg-red-100 text-red-600",
       rejected: "bg-red-100 text-red-600"
     };
-
     return base + (colors[status] || colors.available);
   };
 
+  const ongoingStatuses = ["available", "requested", "reserved"];
+  const completedStatuses = ["completed", "cancelled", "rejected", "fulfilled"];
+
+  const filteredData = data
+    .filter(entry =>
+      activeTab === "ongoing"
+        ? ongoingStatuses.includes(entry.status)
+        : completedStatuses.includes(entry.status)
+    )
+    .filter(entry => {
+      if (!searchText) return true;
+
+      const text = searchText.toLowerCase();
+
+      if (role === "donor") {
+        return entry.items?.some(item =>
+          item.name.toLowerCase().includes(text)
+        );
+      } else {
+        return entry.matchedDonation?.items?.some(item =>
+          item.name.toLowerCase().includes(text)
+        );
+      }
+    });
+
   return (
-    <div>
-      <h2 className="text-3xl font-bold mb-8 text-gray-800">
-        History
+    <div className="max-w-7xl mx-auto px-4">
+
+      <h2 className="text-3xl font-bold mb-6 text-gray-800">
+        My Activity
       </h2>
 
-      {data.length === 0 && (
-        <div className="bg-white shadow-md rounded-xl p-6 text-center text-gray-500">
-          No records found.
-        </div>
-      )}
+      {/* Controls */}
+      <div className="flex flex-wrap gap-4 items-center mb-6">
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {data.map((entry) => (
+        <button
+          onClick={() => setActiveTab("ongoing")}
+          className={`px-4 py-2 rounded-lg font-medium transition ${
+            activeTab === "ongoing"
+              ? "bg-green-600 text-white"
+              : "bg-gray-200 text-gray-700"
+          }`}
+        >
+          Ongoing
+        </button>
+
+        <button
+          onClick={() => setActiveTab("completed")}
+          className={`px-4 py-2 rounded-lg font-medium transition ${
+            activeTab === "completed"
+              ? "bg-green-600 text-white"
+              : "bg-gray-200 text-gray-700"
+          }`}
+        >
+          Completed
+        </button>
+
+        <input
+          type="text"
+          placeholder="Search items..."
+          value={searchText}
+          onChange={(e) => setSearchText(e.target.value)}
+          className="border rounded-lg px-3 py-2 ml-auto"
+        />
+
+        <button
+          onClick={() => setCompactView(!compactView)}
+          className="bg-gray-100 px-3 py-2 rounded-lg"
+        >
+          {compactView ? "Card View" : "Compact View"}
+        </button>
+      </div>
+
+      {/* Cards */}
+      <div
+        className={`transition-all duration-300 ${
+          compactView
+            ? "space-y-3"
+            : "grid grid-cols-1 md:grid-cols-2 gap-6"
+        }`}
+      >
+        {filteredData.map(entry => (
           <div
             key={entry._id}
-            className="bg-white shadow-md rounded-xl p-6 hover:shadow-lg transition"
+            className={`bg-white shadow-md rounded-xl p-6 hover:shadow-xl transition ${
+              compactView ? "flex justify-between items-center" : ""
+            }`}
           >
-            <div className="flex justify-between items-center mb-4">
+            <div>
               <span className={getStatusBadge(entry.status)}>
                 {entry.status.toUpperCase()}
               </span>
-            </div>
 
-            {/* ================= DONOR VIEW ================= */}
-            {role === "donor" && (
-              <>
-                <h4 className="text-lg font-semibold text-gray-700 mb-2">
-                  Donated Items
-                </h4>
-
-                <ul className="mb-4 text-gray-600">
-                  {entry.items.map((item, index) => (
-                    <li key={index}>
+              {role === "donor" && (
+                <ul className="mt-2 text-sm text-gray-600">
+                  {entry.items?.slice(0, compactView ? 1 : 3).map((item, i) => (
+                    <li key={i}>
                       • {item.name} — {item.quantity} {item.unit}
                     </li>
                   ))}
                 </ul>
+              )}
 
-                {/* Requested By */}
-                {entry.requestedBy?.length > 0 && entry.status !== "completed" && (
-  <div className="mt-4">
-    <h5 className="font-semibold mb-2">
-      Requested By:
-    </h5>
+              {role === "organization" && entry.matchedDonation && (
+                <ul className="mt-2 text-sm text-gray-600">
+                  {entry.matchedDonation.items
+                    ?.slice(0, compactView ? 1 : 3)
+                    .map((item, i) => (
+                      <li key={i}>
+                        • {item.name} — {item.quantity} {item.unit}
+                      </li>
+                    ))}
+                </ul>
+              )}
+            </div>
 
-    {entry.requestedBy.map((org) => {
-      const isReserved =
-        entry.status === "reserved" &&
-        entry.acceptedBy?._id === org._id;
+            <div className="flex gap-3 mt-3 flex-wrap">
 
-      return (
-        <div
-          key={org._id}
-          className="flex justify-between items-center mb-2"
-        >
-          <span>
-            {org.name} ({org.city})
-          </span>
+              {role === "donor" &&
+                entry.status === "requested" &&
+                entry.requestedBy?.map(org => (
+                  <button
+                    key={org._id}
+                    onClick={() => handleApprove(entry._id, org._id)}
+                    className="bg-green-600 text-white px-3 py-1 rounded-md text-sm"
+                  >
+                    Approve {org.name}
+                  </button>
+                ))}
 
-          {/* Show Approve only if not reserved */}
-          {entry.status !== "reserved" && (
-            <button
-              onClick={() =>
-                handleApprove(entry._id, org._id)
-              }
-              className="bg-green-600 text-white px-3 py-1 rounded-md text-sm hover:bg-green-700"
-            >
-              Approve
-            </button>
-          )}
-
-          {/* Show Reserved badge */}
-          {isReserved && (
-            <span className="text-orange-600 font-semibold text-sm">
-              Reserved
-            </span>
-          )}
-        </div>
-      );
-    })}
-  </div>
-)}
-
-
-                {/* Reserved Info */}
-                {entry.status === "reserved" && entry.acceptedBy && (
-                  <div className="mt-4 text-gray-600">
-                    Reserved by: {entry.acceptedBy.name}
-                  </div>
-                )}
-              </>
-            )}
-
-            {/* ================= ORGANIZATION VIEW ================= */}
-            {role === "organization" && (
-              <>
-                <h4 className="text-lg font-semibold text-gray-700 mb-2">
-                  Donation Details
-                </h4>
-
-                {entry.matchedDonation && (
+              {role === "organization" &&
+                entry.status === "reserved" && (
                   <>
-                    <p className="text-sm text-gray-500 mb-2">
-                      📍 {entry.matchedDonation.donor?.city}
-                    </p>
-
-                    <ul className="mb-4 text-gray-600">
-                      {entry.matchedDonation.items.map((item, index) => (
-                        <li key={index}>
-                          • {item.name} — {item.quantity} {item.unit}
-                        </li>
-                      ))}
-                    </ul>
-                  </>
-                )}
-
-                {entry.status === "reserved" && (
-                  <div className="flex space-x-3 mt-4">
                     <button
                       onClick={() => handleComplete(entry._id)}
-                      className="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700"
+                      className="bg-green-600 text-white px-3 py-1 rounded-md text-sm"
                     >
                       Complete
                     </button>
-
                     <button
                       onClick={() => handleCancel(entry._id)}
-                      className="bg-red-500 text-white px-4 py-2 rounded-md hover:bg-red-600"
+                      className="bg-red-500 text-white px-3 py-1 rounded-md text-sm"
                     >
                       Cancel
                     </button>
-                  </div>
+                  </>
                 )}
-              </>
-            )}
 
+              <button
+                onClick={() => setSelectedEntry(entry)}
+                className="bg-blue-500 text-white px-3 py-1 rounded-md text-sm"
+              >
+                View Details
+              </button>
+
+            </div>
           </div>
         ))}
       </div>
+
+      {/* Pagination */}
+      <div className="flex justify-center items-center gap-4 mt-10">
+        <button
+          disabled={page === 1}
+          onClick={() => setPage(prev => prev - 1)}
+          className="px-4 py-2 bg-gray-200 rounded disabled:opacity-50"
+        >
+          Prev
+        </button>
+
+        <span className="font-semibold">
+          Page {page} of {totalPages}
+        </span>
+
+        <button
+          disabled={page === totalPages}
+          onClick={() => setPage(prev => prev + 1)}
+          className="px-4 py-2 bg-gray-200 rounded disabled:opacity-50"
+        >
+          Next
+        </button>
+      </div>
+
+      {/* DETAILS MODAL */}
+      {selectedEntry && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-2xl p-6 w-full max-w-2xl shadow-2xl relative overflow-y-auto max-h-[90vh]">
+
+            <button
+              onClick={() => setSelectedEntry(null)}
+              className="absolute top-4 right-4 text-gray-500 hover:text-red-500 text-xl"
+            >
+              ✕
+            </button>
+
+            <h3 className="text-2xl font-bold mb-4 text-gray-800">
+              Activity Details
+            </h3>
+
+            <span className={getStatusBadge(selectedEntry.status)}>
+              {selectedEntry.status.toUpperCase()}
+            </span>
+
+            {role === "donor" && (
+              <div className="mt-4 space-y-2">
+                <p><strong>Meal Type:</strong> {selectedEntry.mealType}</p>
+                <p><strong>Created At:</strong> {new Date(selectedEntry.createdAt).toLocaleString()}</p>
+                <p><strong>Expiry:</strong> {new Date(selectedEntry.expiryTime).toLocaleString()}</p>
+
+                <h4 className="font-semibold mt-3">Items</h4>
+                {selectedEntry.items?.map((item, i) => (
+                  <p key={i}>
+                    • {item.name} — {item.quantity} {item.unit}
+                  </p>
+                ))}
+              </div>
+            )}
+
+            {role === "organization" && selectedEntry.matchedDonation && (
+              <div className="mt-4 space-y-2">
+                <p><strong>Donor:</strong> {selectedEntry.matchedDonation.donor?.name}</p>
+                <p><strong>City:</strong> {selectedEntry.matchedDonation.donor?.city}</p>
+                <p><strong>Expiry:</strong> {new Date(selectedEntry.matchedDonation.expiryTime).toLocaleString()}</p>
+
+                <h4 className="font-semibold mt-3">Items</h4>
+                {selectedEntry.matchedDonation.items?.map((item, i) => (
+                  <p key={i}>
+                    • {item.name} — {item.quantity} {item.unit}
+                  </p>
+                ))}
+              </div>
+            )}
+
+          </div>
+        </div>
+      )}
+
     </div>
   );
 }

@@ -100,18 +100,53 @@ exports.getDonationHistory = async (req, res) => {
 };
 
 exports.getMyActiveDonations = async (req, res) => {
-    try {
-        const donations = await Donation.find({
-    donor: req.user.id
-})
-.populate("acceptedBy", "name email phone")
-.populate("requestedBy", "name email phone");
+  try {
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 5;
+    const tab = req.query.tab || "ongoing";
+    const search = req.query.search || "";
 
+    const skip = (page - 1) * limit;
 
-        res.json(donations);
-    } catch (error) {
-        res.status(500).json({ message: error.message });
+    const ongoingStatuses = ["available", "requested", "reserved"];
+    const completedStatuses = ["completed", "cancelled", "rejected", "fulfilled"];
+
+    let statusFilter =
+      tab === "ongoing" ? ongoingStatuses : completedStatuses;
+
+    let query = {
+      donor: req.user.id,
+      status: { $in: statusFilter }
+    };
+
+    if (search) {
+      query["items.name"] = {
+        $regex: search,
+        $options: "i"
+      };
     }
+
+    const total = await Donation.countDocuments(query);
+
+    const donations = await Donation.find(query)
+      .populate("acceptedBy", "name email phone city")
+      .populate("requestedBy", "name email phone city")
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limit);
+
+    res.json({
+      results: donations,
+      total,
+      page,
+      totalPages: Math.ceil(total / limit)
+    });
+
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
 };
+
+
 
 

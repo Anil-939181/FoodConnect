@@ -12,6 +12,16 @@ function Request() {
 
   const navigate = useNavigate();
 
+  const getMinDateTime = () => {
+    const now = new Date();
+    now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+    return now.toISOString().slice(0, 16);
+  };
+
+  const getCurrentDateTime = () => {
+    return getMinDateTime();
+  };
+
   const handleItemChange = (index, field, value) => {
     const updated = [...requestedItems];
     updated[index][field] = value;
@@ -35,13 +45,18 @@ function Request() {
         const latitude = position.coords.latitude;
         const longitude = position.coords.longitude;
 
+        const cleanItems = requestedItems.filter(
+          item => item.name.trim() !== ""
+        );
+
         const searchData = {
-          requestedItems,
+          requestedItems: cleanItems,
           mealType,
           requiredBefore,
           latitude,
           longitude
         };
+
 
         toast.success("Searching for available donations...");
 
@@ -100,7 +115,7 @@ function Request() {
                   onChange={(e) =>
                     handleItemChange(index, "name", e.target.value)
                   }
-                  required
+                  
                   className="border rounded-lg p-2"
                 />
 
@@ -111,7 +126,7 @@ function Request() {
                   onChange={(e) =>
                     handleItemChange(index, "quantity", e.target.value)
                   }
-                  required
+                  
                   className="border rounded-lg p-2"
                 />
 
@@ -143,8 +158,9 @@ function Request() {
             </label>
             <input
               type="datetime-local"
-              value={requiredBefore}
+              value={requiredBefore || getCurrentDateTime()}
               onChange={(e) => setRequiredBefore(e.target.value)}
+              min={getMinDateTime()}
               required
               className="w-full border rounded-lg p-2"
             />

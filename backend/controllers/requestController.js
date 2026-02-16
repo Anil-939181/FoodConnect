@@ -1,24 +1,93 @@
 const Request = require("../models/Request");
 const Donation = require("../models/Donation");
+const mongoose = require("mongoose");
 
 
 // 🔹 GET MY REQUEST HISTORY (ORGANIZATION)
 exports.getRequestHistory = async (req, res) => {
   try {
-    const requests = await Request.find({
-      requester: req.user.id
-    })
-      .populate({
-        path: "matchedDonation",
-        populate: { path: "donor", select: "name city" }
-      });
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 5;
+    const tab = req.query.tab || "ongoing";
+    const search = req.query.search || "";
 
-    res.json(requests);
+    const skip = (page - 1) * limit;
+
+    const ongoingStatuses = ["requested", "reserved"];
+    const completedStatuses = ["completed", "cancelled", "rejected", "fulfilled"];
+
+    const statusFilter =
+      tab === "ongoing" ? ongoingStatuses : completedStatuses;
+
+    // 🔥 Use aggregation instead of find + populate
+    const aggregation = [
+      {
+        $match: {
+          requester: new mongoose.Types.ObjectId(req.user.id),
+
+          status: { $in: statusFilter }
+        }
+      },
+      {
+        $lookup: {
+          from: "donations",
+          localField: "matchedDonation",
+          foreignField: "_id",
+          as: "matchedDonation"
+        }
+      },
+      { $unwind: "$matchedDonation" },
+      {
+        $lookup: {
+          from: "users",
+          localField: "matchedDonation.donor",
+          foreignField: "_id",
+          as: "matchedDonation.donor"
+        }
+      },
+      { $unwind: "$matchedDonation.donor" }
+    ];
+
+    // 🔥 Search filter BEFORE pagination
+    if (search) {
+      aggregation.push({
+        $match: {
+          "matchedDonation.items.name": {
+            $regex: search,
+            $options: "i"
+          }
+        }
+      });
+    }
+
+    aggregation.push({
+      $sort: { createdAt: -1 }
+    });
+
+    // Count total AFTER filters
+    const countPipeline = [...aggregation, { $count: "total" }];
+    const totalResult = await Request.aggregate(countPipeline);
+    const total = totalResult[0]?.total || 0;
+
+    // Apply pagination
+    aggregation.push({ $skip: skip });
+    aggregation.push({ $limit: limit });
+
+    const results = await Request.aggregate(aggregation);
+
+    res.json({
+      results,
+      total,
+      page,
+      totalPages: Math.ceil(total / limit)
+    });
 
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
 };
+
+
 
 
 // 🔹 ORGANIZATION CANCEL REQUEST

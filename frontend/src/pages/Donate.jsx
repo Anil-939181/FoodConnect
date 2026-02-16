@@ -11,6 +11,16 @@ function Donate() {
   const [expiryTime, setExpiryTime] = useState("");
   const [loading, setLoading] = useState(false);
 
+  const getMinDateTime = () => {
+    const now = new Date();
+    now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+    return now.toISOString().slice(0, 16);
+  };
+
+  const getCurrentDateTime = () => {
+    return getMinDateTime();
+  };
+
   const handleItemChange = (index, field, value) => {
     const updated = [...items];
     updated[index][field] = value;
@@ -174,8 +184,9 @@ function Donate() {
             </label>
             <input
               type="datetime-local"
-              value={expiryTime}
+              value={expiryTime || getCurrentDateTime()}
               onChange={(e) => setExpiryTime(e.target.value)}
+              min={getMinDateTime()}
               required
               className="w-full border rounded-lg p-2"
             />

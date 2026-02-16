@@ -10,93 +10,142 @@ exports.searchMatches = async (req, res) => {
       latitude,
       longitude,
       radius = 20,
-      mealType
+      mealType,
+      requiredBefore,
+      page = 1,
+      limit = 10
     } = req.body;
 
     if (!latitude || !longitude) {
       return res.status(400).json({ message: "Location required" });
     }
 
-    // STEP 1: Geo filter + base filters
-    const donations = await Donation.find({
+    const pageNumber = Number(page);
+    const pageLimit = Number(limit);
+    const skip = (pageNumber - 1) * pageLimit;
+
+    // 🔥 Base Query Conditions
+    const baseQuery = {
       status: { $in: ["available", "requested", "reserved"] },
-      expiryTime: { $gt: new Date() },
-      location: {
-        $near: {
-          $geometry: {
+      expiryTime: { $gt: new Date() }
+    };
+
+    // 🔥 If requiredBefore exists → ensure donation lasts at least until that time
+    if (requiredBefore) {
+      baseQuery.expiryTime = {
+        $gte: new Date(requiredBefore)
+      };
+    }
+
+    if (mealType) {
+      baseQuery.mealType = mealType;
+    }
+
+    const donations = await Donation.aggregate([
+      {
+        $geoNear: {
+          near: {
             type: "Point",
-            coordinates: [longitude, latitude],
+            coordinates: [Number(longitude), Number(latitude)]
           },
-          $maxDistance: radius * 1000
+          distanceField: "distance",
+          maxDistance: radius * 1000,
+          spherical: true,
+          query: baseQuery
+        }
+      },
+      {
+        $lookup: {
+          from: "users",
+          localField: "donor",
+          foreignField: "_id",
+          as: "donor"
+        }
+      },
+      { $unwind: "$donor" },
+      {
+        $project: {
+          mealType: 1,
+          items: 1,
+          expiryTime: 1,
+          status: 1,
+          requestedBy: 1,
+          acceptedBy: 1,
+          location: 1,
+          donor: {
+            name: "$donor.name",
+            city: "$donor.city"
+          },
+          distance: { $divide: ["$distance", 1000] }
         }
       }
-    }).populate("donor", "name city");
+    ]);
 
-    // STEP 2: Intelligent scoring
-    const scoredResults = donations.map(donation => {
+    let finalResults = donations;
 
-      let score = 0;
+    // 🔥 Apply scoring only if items provided
+    if (requestedItems && requestedItems.length > 0) {
 
-      // ---------- Meal Type Scoring ----------
-      if (mealType && donation.mealType === mealType) {
-        score += 3;
-      }
+      const scoredResults = donations.map(donation => {
 
-      // ---------- Item Matching ----------
-      requestedItems.forEach(reqItem => {
-        donation.items.forEach(donItem => {
+        let score = 0;
 
-          const reqName = reqItem.name.toLowerCase();
-          const donName = donItem.name.toLowerCase();
+        requestedItems.forEach(reqItem => {
+          donation.items.forEach(donItem => {
 
-          // Fuzzy Match (includes)
-          if (
-            donName.includes(reqName) ||
-            reqName.includes(donName)
-          ) {
-            score += 2;
+            const reqName = reqItem.name.toLowerCase();
+            const donName = donItem.name.toLowerCase();
 
-            const ratio = donItem.quantity / reqItem.quantity;
+            if (
+              donName.includes(reqName) ||
+              reqName.includes(donName)
+            ) {
+              score += 2;
 
-            if (ratio >= 1) score += 2;
-            else if (ratio >= 0.7) score += 1.5;
-            else if (ratio >= 0.4) score += 1;
-            else score += 0.5;
-          }
+              const ratio = donItem.quantity / reqItem.quantity;
+
+              if (ratio >= 1) score += 2;
+              else if (ratio >= 0.7) score += 1.5;
+              else if (ratio >= 0.4) score += 1;
+              else score += 0.5;
+            }
+          });
         });
+
+        const hoursLeft =
+          (new Date(donation.expiryTime) - new Date()) / (1000 * 60 * 60);
+
+        if (hoursLeft <= 3) score += 2;
+        else if (hoursLeft <= 6) score += 1;
+
+        return {
+          ...donation,
+          matchScore: score
+        };
       });
 
-      // ---------- Distance Scoring ----------
-      const distanceInKm = donation.distance || 0;
+      finalResults = scoredResults
+        .filter(d => d.matchScore > 0)
+        .sort((a, b) => b.matchScore - a.matchScore);
+    }
 
-      if (distanceInKm <= 5) score += 3;
-      else if (distanceInKm <= 10) score += 2;
-      else if (distanceInKm <= 20) score += 1;
+    // 🔥 Pagination
+    const paginatedResults = finalResults.slice(skip, skip + pageLimit);
 
-      // ---------- Expiry Priority ----------
-      const hoursLeft =
-        (new Date(donation.expiryTime) - new Date()) / (1000 * 60 * 60);
-
-      if (hoursLeft <= 3) score += 2;
-      else if (hoursLeft <= 6) score += 1;
-
-      return {
-        ...donation.toObject(),
-        matchScore: score
-      };
+    res.json({
+      total: finalResults.length,
+      page: pageNumber,
+      limit: pageLimit,
+      results: paginatedResults
     });
-
-    // STEP 3: Filter + Sort
-    const finalResults = scoredResults
-      .filter(d => d.matchScore > 0)
-      .sort((a, b) => b.matchScore - a.matchScore);
-
-    res.json(finalResults);
 
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
 };
+
+
+
 
 
 

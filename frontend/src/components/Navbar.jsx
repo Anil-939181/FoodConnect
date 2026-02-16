@@ -67,22 +67,20 @@ function Navbar() {
                 </button>
 
                 {profileOpen && (
-                  <div className="absolute right-0 mt-2 w-40 bg-white text-black rounded-md shadow-lg">
-                    <Link
-                      to="/profile"
-                      className="block px-4 py-2 hover:bg-gray-100"
-                      onClick={() => setProfileOpen(false)}
-                    >
-                      View Profile
-                    </Link>
-                    <button
-                      onClick={handleLogout}
-                      className="w-full text-left px-4 py-2 hover:bg-gray-100"
-                    >
-                      Logout
-                    </button>
-                  </div>
-                )}
+  <div className="absolute right-0 mt-2 w-48 bg-white text-black rounded-md shadow-lg p-4">
+    
+    <p className="font-semibold">{name}</p>
+    <p className="text-sm text-gray-600 capitalize">{role}</p>
+
+    <button
+      onClick={handleLogout}
+      className="mt-3 w-full bg-red-500 text-white px-3 py-1 rounded-md hover:bg-red-600"
+    >
+      Logout
+    </button>
+  </div>
+)}
+
               </div>
             </>
           )}
