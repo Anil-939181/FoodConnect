@@ -21,9 +21,9 @@ router.get(
   getMyActiveDonations
 );
 
-// 🔹 COMPLETED HISTORY
+// 🔹 COMPLETED MY ACTIVITY
 router.get(
-  "/history",
+  "/my-activity",
   authMiddleware,
   roleMiddleware("donor"),
   getDonationHistory

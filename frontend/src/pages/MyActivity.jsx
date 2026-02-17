@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import API from "../services/api";
 import { toast } from "react-toastify";
 
-function History() {
+function MyActivity() {
   const role = localStorage.getItem("role");
 
   const [data, setData] = useState([]);
@@ -13,42 +13,44 @@ function History() {
 
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
+  const [loading, setLoading] = useState(false);
 
   const limit = 5;
 
   useEffect(() => {
     fetchHistory(page);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [page]);
 
   useEffect(() => {
-  setPage(1);
-}, [activeTab]);
-
-  useEffect(() => {
-  setPage(1);
-}, [activeTab, searchText]);
+    if (page === 1) {
+      fetchHistory(1);
+    } else {
+      setPage(1);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeTab, searchText]);
 
   const fetchHistory = async (pageNumber = 1) => {
     try {
+      setLoading(true);
       let res;
 
       if (role === "donor") {
-        res = await API.get(
-  `/donations/my/all?page=${pageNumber}&limit=${limit}&tab=${activeTab}&search=${searchText}`
-);
+        res = await API.get(`/donations/my/all?page=${pageNumber}&limit=${limit}&tab=${activeTab}&search=${searchText}`);
 
       } else {
-        res = await API.get(
-  `/requests/history?page=${pageNumber}&limit=${limit}&tab=${activeTab}&search=${searchText}`
-);
+        res = await API.get(`/requests/my-activity?page=${pageNumber}&limit=${limit}&tab=${activeTab}&search=${searchText}`);
 
       }
 
-      setData(res.data.results);
-      setTotalPages(res.data.totalPages);
+      setData(res.data.results || res.data || []);
+      setTotalPages(res.data.totalPages || Math.max(1, Math.ceil((res.data.total || 0) / limit)));
 
     } catch (error) {
       toast.error("Error fetching activity");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -160,92 +162,103 @@ function History() {
         </button>
       </div>
 
+      {/* Loading skeleton */}
+      {loading && (
+        <div className="space-y-4">
+          {[...Array(4)].map((_, i) => (
+            <div key={i} className="bg-white rounded-xl p-6 shadow animate-pulse h-28"></div>
+          ))}
+        </div>
+      )}
+
       {/* Cards */}
-      <div
-        className={`transition-all duration-300 ${
-          compactView
-            ? "space-y-3"
-            : "grid grid-cols-1 md:grid-cols-2 gap-6"
-        }`}
-      >
-        {filteredData.map(entry => (
-          <div
-            key={entry._id}
-            className={`bg-white shadow-md rounded-xl p-6 hover:shadow-xl transition ${
-              compactView ? "flex justify-between items-center" : ""
-            }`}
-          >
-            <div>
-              <span className={getStatusBadge(entry.status)}>
-                {entry.status.toUpperCase()}
-              </span>
+      {!loading && (
+        <div
+          className={`transition-all duration-300 ${
+            compactView
+              ? "space-y-3"
+              : "grid grid-cols-1 md:grid-cols-2 gap-6"
+          }`}
+        >
+          {filteredData.map(entry => (
+            <div
+              key={entry._id}
+              className={`bg-white shadow-md rounded-xl p-6 hover:shadow-xl transition ${
+                compactView ? "flex justify-between items-center" : ""
+              }`}
+            >
+              <div>
+                <span className={getStatusBadge(entry.status)}>
+                  {entry.status.toUpperCase()}
+                </span>
 
-              {role === "donor" && (
-                <ul className="mt-2 text-sm text-gray-600">
-                  {entry.items?.slice(0, compactView ? 1 : 3).map((item, i) => (
-                    <li key={i}>
-                      • {item.name} — {item.quantity} {item.unit}
-                    </li>
-                  ))}
-                </ul>
-              )}
-
-              {role === "organization" && entry.matchedDonation && (
-                <ul className="mt-2 text-sm text-gray-600">
-                  {entry.matchedDonation.items
-                    ?.slice(0, compactView ? 1 : 3)
-                    .map((item, i) => (
+                {role === "donor" && (
+                  <ul className="mt-2 text-sm text-gray-600">
+                    {entry.items?.slice(0, compactView ? 1 : 3).map((item, i) => (
                       <li key={i}>
                         • {item.name} — {item.quantity} {item.unit}
                       </li>
                     ))}
-                </ul>
-              )}
-            </div>
-
-            <div className="flex gap-3 mt-3 flex-wrap">
-
-              {role === "donor" &&
-                entry.status === "requested" &&
-                entry.requestedBy?.map(org => (
-                  <button
-                    key={org._id}
-                    onClick={() => handleApprove(entry._id, org._id)}
-                    className="bg-green-600 text-white px-3 py-1 rounded-md text-sm"
-                  >
-                    Approve {org.name}
-                  </button>
-                ))}
-
-              {role === "organization" &&
-                entry.status === "reserved" && (
-                  <>
-                    <button
-                      onClick={() => handleComplete(entry._id)}
-                      className="bg-green-600 text-white px-3 py-1 rounded-md text-sm"
-                    >
-                      Complete
-                    </button>
-                    <button
-                      onClick={() => handleCancel(entry._id)}
-                      className="bg-red-500 text-white px-3 py-1 rounded-md text-sm"
-                    >
-                      Cancel
-                    </button>
-                  </>
+                  </ul>
                 )}
 
-              <button
-                onClick={() => setSelectedEntry(entry)}
-                className="bg-blue-500 text-white px-3 py-1 rounded-md text-sm"
-              >
-                View Details
-              </button>
+                {role === "organization" && entry.matchedDonation && (
+                  <ul className="mt-2 text-sm text-gray-600">
+                    {entry.matchedDonation.items
+                      ?.slice(0, compactView ? 1 : 3)
+                      .map((item, i) => (
+                        <li key={i}>
+                          • {item.name} — {item.quantity} {item.unit}
+                        </li>
+                      ))}
+                  </ul>
+                )}
+              </div>
 
+              <div className="flex gap-3 mt-3 flex-wrap">
+
+                {role === "donor" &&
+                  entry.status === "requested" &&
+                  entry.requestedBy?.map(org => (
+                    <button
+                      key={org._id}
+                      onClick={() => handleApprove(entry._id, org._id)}
+                      className="bg-green-600 text-white px-3 py-1 rounded-md text-sm"
+                    >
+                      Approve {org.name}
+                    </button>
+                  ))}
+
+                {role === "organization" &&
+                  entry.status === "reserved" && (
+                    <>
+                      <button
+                        onClick={() => handleComplete(entry._id)}
+                        className="bg-green-600 text-white px-3 py-1 rounded-md text-sm"
+                      >
+                        Complete
+                      </button>
+                      <button
+                        onClick={() => handleCancel(entry._id)}
+                        className="bg-red-500 text-white px-3 py-1 rounded-md text-sm"
+                      >
+                        Cancel
+                      </button>
+                    </>
+                  )}
+
+                <button
+                  onClick={() => setSelectedEntry(entry)}
+                  className="bg-blue-500 text-white px-3 py-1 rounded-md text-sm"
+                >
+                  View Details
+                </button>
+
+              </div>
             </div>
-          </div>
-        ))}
-      </div>
+          ))}
+        </div>
+      )}
 
       {/* Pagination */}
       <div className="flex justify-center items-center gap-4 mt-10">
@@ -328,4 +341,4 @@ function History() {
   );
 }
 
-export default History;
+export default MyActivity;

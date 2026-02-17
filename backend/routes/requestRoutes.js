@@ -9,9 +9,9 @@ const {
   cancelRequest
 } = require("../controllers/requestController");
 
-// 🔹 ORGANIZATION HISTORY
+// 🔹 ORGANIZATION MY ACTIVITY
 router.get(
-  "/history",
+  "/my-activity",
   authMiddleware,
   roleMiddleware("organization"),
   getRequestHistory

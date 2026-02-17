@@ -53,8 +53,8 @@ function Navbar() {
                 </Link>
               )}
 
-              <Link to="/history" className="hover:text-gray-200">
-                History
+              <Link to="/my-activity" className="hover:text-gray-200">
+                My Activity
               </Link>
 
               {/* Profile Dropdown */}
@@ -119,7 +119,7 @@ function Navbar() {
                 <Link to="/request" onClick={() => setMenuOpen(false)} className="block">Request</Link>
               )}
 
-              <Link to="/history" onClick={() => setMenuOpen(false)} className="block">History</Link>
+              <Link to="/my-activity" onClick={() => setMenuOpen(false)} className="block">My Activity</Link>
 
               <button
                 onClick={handleLogout}

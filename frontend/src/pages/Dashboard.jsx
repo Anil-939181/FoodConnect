@@ -149,13 +149,12 @@ function Dashboard() {
   // =================== DONOR DASHBOARD ===================
   if (role === "donor") {
     const { stats, recent } = data;
-
     return (
       <div className="space-y-8 fade-in">
         {/* Header */}
-        <div className="bg-gradient-to-r from-green-500 to-emerald-600 rounded-2xl p-8 text-white shadow-lg">
-          <h1 className="text-4xl font-bold">Welcome Back, Donor! 🎉</h1>
-          <p className="text-green-100 mt-2">Here's your donation overview</p>
+        <div className="bg-gradient-to-r from-green-600 to-emerald-600 rounded-2xl p-8 text-white shadow-lg">
+          <h1 className="text-4xl font-bold">Dashboard</h1>
+          <p className="text-green-100 mt-2">Donation overview and recent activity</p>
         </div>
 
         {/* Stats Grid */}
@@ -163,50 +162,50 @@ function Dashboard() {
           <AnimatedStat
             value={stats.totalDonations}
             label="Total Donations"
-            icon="📦"
+            icon={null}
             color="purple"
           />
           <AnimatedStat
             value={stats.availableDonations}
             label="Available"
-            icon="✅"
+            icon={null}
             color="gray"
           />
           <AnimatedStat
             value={stats.requestedDonations}
             label="Requested"
-            icon="🔔"
+            icon={null}
             color="blue"
           />
           <AnimatedStat
             value={stats.reservedDonations}
             label="Reserved"
-            icon="🔒"
+            icon={null}
             color="orange"
           />
           <AnimatedStat
             value={stats.completedDonations}
             label="Completed"
-            icon="✨"
+            icon={null}
             color="green"
           />
         </div>
 
         {/* Requests Received Card */}
-        <div className="bg-gradient-to-br from-indigo-50 to-purple-50 rounded-2xl p-6 border border-purple-200 shadow-md">
+        <div className="bg-white rounded-2xl p-6 border border-gray-200 shadow-md">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-gray-600 text-sm font-medium">Total Requests Received</p>
-              <p className="text-4xl font-bold text-purple-600 mt-2">{stats.totalRequestsReceived}</p>
+              <p className="text-4xl font-bold text-gray-800 mt-2">{stats.totalRequestsReceived}</p>
             </div>
-            <span className="text-5xl">📨</span>
+            <div className="text-3xl text-gray-400">&nbsp;</div>
           </div>
         </div>
 
         {/* Recent Donations Table */}
         {recent.length > 0 ? (
           <div className="bg-white rounded-2xl shadow-lg overflow-hidden border border-gray-200">
-            <div className="px-8 py-6 bg-gradient-to-r from-gray-50 to-gray-100 border-b border-gray-200">
+            <div className="px-8 py-6 bg-gray-50 border-b border-gray-200">
               <h2 className="text-2xl font-bold text-gray-800">Recent Donations</h2>
               <p className="text-gray-500 text-sm mt-1">Your last 5 donations</p>
             </div>
@@ -275,8 +274,7 @@ function Dashboard() {
           </div>
         ) : (
           <div className="bg-white rounded-2xl p-12 text-center shadow-lg">
-            <p className="text-5xl mb-4">📭</p>
-            <p className="text-gray-500 text-lg">No donations yet. Start sharing food today! 🌱</p>
+            <p className="text-gray-500 text-lg">No donations yet. Start sharing food today.</p>
           </div>
         )}
       </div>
@@ -404,8 +402,7 @@ function Dashboard() {
           </div>
         ) : (
           <div className="bg-white rounded-2xl p-12 text-center shadow-lg">
-            <p className="text-5xl mb-4">🎯</p>
-            <p className="text-gray-500 text-lg">No requests yet. Start searching for available food! 🍽️</p>
+            <p className="text-gray-500 text-lg">No requests yet. Start searching for available food.</p>
           </div>
         )}
       </div>

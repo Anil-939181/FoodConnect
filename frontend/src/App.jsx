@@ -12,7 +12,7 @@ import Request from "./pages/Request";
 import Home from "./pages/Home";
 
 import Matches from "./pages/Matches";
-import History from "./pages/History";
+import MyActivity from "./pages/MyActivity";
 import Navbar from "./components/Navbar";
 import Loading from "./components/Loading";
 function App() {
@@ -67,10 +67,10 @@ function App() {
         />
 
         <Route
-          path="/history"
+          path="/my-activity"
           element={
             <ProtectedRoute>
-              <History />
+              <MyActivity />
             </ProtectedRoute>
           }
         />
