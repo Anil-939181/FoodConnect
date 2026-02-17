@@ -8,6 +8,7 @@ function Matches() {
   const searchData = location.state;
   const [selectedDonation, setSelectedDonation] = useState(null);
 const [customRequiredBefore, setCustomRequiredBefore] = useState("");
+  const [userLocation, setUserLocation] = useState(null);
 
   const [matches, setMatches] = useState([]);
   const [page, setPage] = useState(1);
@@ -21,14 +22,31 @@ const [customRequiredBefore, setCustomRequiredBefore] = useState("");
 
   const [selectedMap, setSelectedMap] = useState(null);
 
+  // Fetch user location on mount
+  useEffect(() => {
+    const fetchUserLocation = async () => {
+      try {
+        const res = await API.get("/auth/me");
+        if (res.data.latitude && res.data.longitude) {
+          setUserLocation({ latitude: res.data.latitude, longitude: res.data.longitude });
+        }
+      } catch (error) {
+        console.error("Error fetching user location:", error);
+      }
+    };
+    fetchUserLocation();
+  }, []);
+
   const fetchMatches = async (reset = false) => {
-    if (loading) return;
+    if (loading || !userLocation) return;
 
     try {
       setLoading(true);
 
       const res = await API.post("/match/search", {
         ...searchData,
+        latitude: userLocation.latitude,
+        longitude: userLocation.longitude,
         radius,
         mealType,
         page: reset ? 1 : page,
@@ -57,13 +75,13 @@ const [customRequiredBefore, setCustomRequiredBefore] = useState("");
   };
 
   useEffect(() => {
-    if (searchData) {
+    if (searchData && userLocation) {
       setMatches([]);
       setPage(1);
       setHasMore(true);
       fetchMatches(true);
     }
-  }, [radius, mealType]);
+  }, [radius, mealType, userLocation]);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -308,14 +326,58 @@ const [customRequiredBefore, setCustomRequiredBefore] = useState("");
       {/* MAP MODAL */}
       {selectedMap && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
-          <div className="bg-white rounded-xl p-6 w-96">
-            <h3 className="font-bold mb-3">Location Preview</h3>
-            <iframe
-              width="100%"
-              height="250"
-              src={`https://maps.google.com/maps?q=${selectedMap.location.coordinates[1]},${selectedMap.location.coordinates[0]}&z=15&output=embed`}
-              title="map"
-            ></iframe>
+          <div className="bg-white rounded-xl p-6 w-full max-w-md max-h-[90vh] overflow-y-auto">
+            <div className="flex justify-between items-center mb-4">
+              <div>
+                <h3 className="font-bold text-lg">Donor Location</h3>
+                {selectedMap.donor?.name && (
+                  <p className="text-sm text-gray-600">{selectedMap.donor.name} {selectedMap.donor?.city ? `• ${selectedMap.donor.city}` : ''}</p>
+                )}
+              </div>
+              <button
+                onClick={() => setSelectedMap(null)}
+                className="text-gray-500 text-2xl hover:text-gray-700"
+              >
+                ×
+              </button>
+            </div>
+
+            {selectedMap.donor?.latitude && selectedMap.donor?.longitude ? (
+              <>
+                {/* Location Coordinates Display */}
+                <div className="mb-4 p-3 bg-gray-50 rounded-lg border border-gray-200">
+                  <p className="text-sm font-semibold text-gray-700 mb-2">Coordinates:</p>
+                  <p className="text-sm text-gray-800">
+                    <span className="font-medium">Decimal:</span> {selectedMap.donor.latitude.toFixed(6)}, {selectedMap.donor.longitude.toFixed(6)}
+                  </p>
+                  {selectedMap.donor?.latDegrees && selectedMap.donor?.latMinutes && selectedMap.donor?.latSeconds && selectedMap.donor?.lonDegrees && selectedMap.donor?.lonMinutes && selectedMap.donor?.lonSeconds && (
+                    <p className="text-sm text-gray-800 mt-1">
+                      <span className="font-medium">DMS:</span> {selectedMap.donor.latDegrees}° {selectedMap.donor.latMinutes}' {selectedMap.donor.latSeconds?.toFixed(2)}" , {selectedMap.donor.lonDegrees}° {selectedMap.donor.lonMinutes}' {selectedMap.donor.lonSeconds?.toFixed(2)}"
+                    </p>
+                  )}
+                </div>
+
+                <div className="w-full h-64 mb-3 rounded-lg overflow-hidden">
+                  <iframe
+                    width="100%"
+                    height="100%"
+                    src={`https://maps.google.com/maps?q=${selectedMap.donor.latitude},${selectedMap.donor.longitude}&z=15&output=embed`}
+                    title="map"
+                  ></iframe>
+                </div>
+
+                <a
+                  className="inline-block w-full text-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-semibold text-sm"
+                  href={`https://www.google.com/maps/search/?api=1&query=${selectedMap.donor.latitude},${selectedMap.donor.longitude}`}
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                  📍 Open in Google Maps
+                </a>
+              </>
+            ) : (
+              <p className="text-gray-500 text-sm">Location information not available</p>
+            )}
 
             <button
               onClick={() => setSelectedMap(null)}

@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import API from "../services/api";
 import { toast } from "react-toastify";
+import { haversineDistance } from "../utils/distance";
 
 function MyActivity() {
   const role = localStorage.getItem("role");
@@ -10,12 +11,30 @@ function MyActivity() {
   const [searchText, setSearchText] = useState("");
   const [compactView, setCompactView] = useState(false);
   const [selectedEntry, setSelectedEntry] = useState(null);
+  const [distanceKm, setDistanceKm] = useState(null);
+  const [mapModal, setMapModal] = useState(null); // { lat, lon, query }
+  const [userLocation, setUserLocation] = useState(null);
 
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [loading, setLoading] = useState(false);
 
   const limit = 5;
+
+  // Fetch user location on mount
+  useEffect(() => {
+    const fetchUserLoc = async () => {
+      try {
+        const res = await API.get("/auth/me");
+        if (res.data.latitude && res.data.longitude) {
+          setUserLocation({ latitude: res.data.latitude, longitude: res.data.longitude });
+        }
+      } catch (error) {
+        console.error("Error fetching user location:", error);
+      }
+    };
+    fetchUserLoc();
+  }, []);
 
   useEffect(() => {
     fetchHistory(page);
@@ -30,6 +49,47 @@ function MyActivity() {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeTab, searchText]);
+
+  // When selectedEntry changes, compute distance using user location
+  useEffect(() => {
+    setDistanceKm(null);
+    if (!selectedEntry || !userLocation) return;
+
+    const myLat = userLocation.latitude;
+    const myLon = userLocation.longitude;
+
+    if (!Number.isFinite(myLat) || !Number.isFinite(myLon)) return;
+
+    // For donor: calculate distance to organizations that requested/accepted
+    if (role === "donor") {
+      // Use accepted org or first requestor if available
+      let targetLat = null, targetLon = null;
+
+      if (selectedEntry.acceptedBy?.latitude && selectedEntry.acceptedBy?.longitude) {
+        targetLat = selectedEntry.acceptedBy.latitude;
+        targetLon = selectedEntry.acceptedBy.longitude;
+      } else if (selectedEntry.requestedBy?.[0]?.latitude && selectedEntry.requestedBy?.[0]?.longitude) {
+        targetLat = selectedEntry.requestedBy[0].latitude;
+        targetLon = selectedEntry.requestedBy[0].longitude;
+      }
+
+      if (Number.isFinite(targetLat) && Number.isFinite(targetLon)) {
+        const km = haversineDistance(myLat, myLon, targetLat, targetLon);
+        setDistanceKm(km.toFixed(1));
+      }
+    }
+
+    // For organization: calculate distance to donor
+    if (role === "organization") {
+      const donorLat = selectedEntry.matchedDonation?.donor?.latitude;
+      const donorLon = selectedEntry.matchedDonation?.donor?.longitude;
+
+      if (Number.isFinite(donorLat) && Number.isFinite(donorLon)) {
+        const km = haversineDistance(myLat, myLon, donorLat, donorLon);
+        setDistanceKm(km.toFixed(1));
+      }
+    }
+  }, [selectedEntry, userLocation, role]);
 
   const fetchHistory = async (pageNumber = 1) => {
     try {
@@ -220,13 +280,38 @@ function MyActivity() {
                 {role === "donor" &&
                   entry.status === "requested" &&
                   entry.requestedBy?.map(org => (
-                    <button
-                      key={org._id}
-                      onClick={() => handleApprove(entry._id, org._id)}
-                      className="bg-green-600 text-white px-3 py-1 rounded-md text-sm"
-                    >
-                      Approve {org.name}
-                    </button>
+                    <div key={org._id} className="flex items-center gap-2">
+                      <button
+                        onClick={() => handleApprove(entry._id, org._id)}
+                        className="bg-green-600 text-white px-3 py-1 rounded-md text-sm"
+                      >
+                        Approve {org.name}
+                      </button>
+                      <button
+                        onClick={() => {
+                          // Use organization's location directly from User model
+                          if (org.latitude && org.longitude) {
+                            setMapModal({ 
+                              lat: org.latitude, 
+                              lon: org.longitude,
+                              latDegrees: org.latDegrees,
+                              latMinutes: org.latMinutes,
+                              latSeconds: org.latSeconds,
+                              lonDegrees: org.lonDegrees,
+                              lonMinutes: org.lonMinutes,
+                              lonSeconds: org.lonSeconds,
+                              name: org.name,
+                              city: org.city
+                            });
+                          } else {
+                            setMapModal({ query: `${org.name} ${org.city || ''}`.trim() });
+                          }
+                        }}
+                        className="bg-gray-100 text-gray-800 px-3 py-1 rounded-md text-sm"
+                      >
+                        Map
+                      </button>
+                    </div>
                   ))}
 
                 {role === "organization" &&
@@ -315,6 +400,71 @@ function MyActivity() {
                     • {item.name} — {item.quantity} {item.unit}
                   </p>
                 ))}
+
+                {/* Show organizations that requested or accepted this donation */}
+                {selectedEntry.acceptedBy && (
+                  <div className="mt-3">
+                    <h4 className="font-semibold">Accepted By</h4>
+                    {Array.isArray(selectedEntry.acceptedBy) ? (
+                      selectedEntry.acceptedBy.map((org) => (
+                        <div key={org._id} className="text-sm text-gray-700">
+                          <p className="font-medium">{org.name}</p>
+                          <p className="text-gray-500">{org.city} — {org.phone || org.email}</p>
+                        </div>
+                      ))
+                    ) : (
+                      <div className="text-sm text-gray-700">
+                        <p className="font-medium">{selectedEntry.acceptedBy.name}</p>
+                        <p className="text-gray-500">{selectedEntry.acceptedBy.city} — {selectedEntry.acceptedBy.phone || selectedEntry.acceptedBy.email}</p>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {selectedEntry.requestedBy && selectedEntry.requestedBy.length > 0 && (
+                  <div className="mt-3">
+                    <h4 className="font-semibold">Requested By</h4>
+                    {selectedEntry.requestedBy.map((org) => (
+                      <div key={org._id} className="text-sm text-gray-700 flex items-center justify-between">
+                        <div>
+                          <p className="font-medium">{org.name}</p>
+                          <p className="text-gray-500">{org.city} — {org.phone || org.email}</p>
+                        </div>
+                        <div>
+                          <button
+                            onClick={() => {
+                              // Use organization's location directly from User model
+                              if (org.latitude && org.longitude) {
+                                setMapModal({ 
+                                  lat: org.latitude, 
+                                  lon: org.longitude,
+                                  latDegrees: org.latDegrees,
+                                  latMinutes: org.latMinutes,
+                                  latSeconds: org.latSeconds,
+                                  lonDegrees: org.lonDegrees,
+                                  lonMinutes: org.lonMinutes,
+                                  lonSeconds: org.lonSeconds,
+                                  name: org.name,
+                                  city: org.city
+                                });
+                              } else {
+                                setMapModal({ query: `${org.name} ${org.city || ''}`.trim() });
+                              }
+                            }}
+                            className="ml-3 text-sm text-blue-600 hover:underline"
+                          >
+                            View Map
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+                {distanceKm !== null && (
+                  <div className="mt-3 text-sm text-gray-600">
+                    <strong>Distance:</strong> {distanceKm} km from you
+                  </div>
+                )}
               </div>
             )}
 
@@ -323,6 +473,43 @@ function MyActivity() {
                 <p><strong>Donor:</strong> {selectedEntry.matchedDonation.donor?.name}</p>
                 <p><strong>City:</strong> {selectedEntry.matchedDonation.donor?.city}</p>
                 <p><strong>Expiry:</strong> {new Date(selectedEntry.matchedDonation.expiryTime).toLocaleString()}</p>
+
+                {distanceKm !== null && (
+                  <div className="mt-3 text-sm text-gray-600">
+                    <strong>Distance:</strong> {distanceKm} km from you
+                  </div>
+                )}
+
+                <div className="mt-3">
+                  <button
+                    onClick={() => {
+                        
+                      const donor = selectedEntry.matchedDonation?.donor;
+if (donor?.latitude && donor?.longitude) {
+  setMapModal({
+    lat: donor.latitude,
+    lon: donor.longitude,
+    latDegrees: donor.latDegrees,
+    latMinutes: donor.latMinutes,
+    latSeconds: donor.latSeconds,
+    lonDegrees: donor.lonDegrees,
+    lonMinutes: donor.lonMinutes,
+    lonSeconds: donor.lonSeconds,
+    name: donor.name,
+    city: donor.city
+  });
+} else {
+  setMapModal({
+    query: `${donor?.name || ""} ${donor?.city || ""}`.trim()
+  });
+}
+
+                    }}
+                    className="text-sm text-blue-600 hover:underline"
+                  >
+                    View Donor Location
+                  </button>
+                </div>
 
                 <h4 className="font-semibold mt-3">Items</h4>
                 {selectedEntry.matchedDonation.items?.map((item, i) => (
@@ -336,6 +523,121 @@ function MyActivity() {
           </div>
         </div>
       )}
+
+      {/* MAP MODAL */}
+      {/* MAP MODAL */}
+{mapModal && (
+  <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
+    <div className="bg-white rounded-xl p-6 w-full max-w-md max-h-[90vh] overflow-y-auto shadow-2xl relative">
+
+      {/* Header */}
+      <div className="flex justify-between items-center mb-4">
+        <div>
+          <h3 className="font-bold text-lg">Location Details</h3>
+          {mapModal.name && (
+            <p className="text-sm text-gray-600">
+              {mapModal.name} {mapModal.city ? `• ${mapModal.city}` : ''}
+            </p>
+          )}
+        </div>
+
+        <button
+          onClick={() => setMapModal(null)}
+          className="text-gray-500 text-2xl hover:text-gray-700 transition"
+        >
+          ×
+        </button>
+      </div>
+
+      {/* If Coordinates Available */}
+      {mapModal.lat && mapModal.lon ? (
+        <>
+          {/* Coordinates Box */}
+          <div className="mb-4 p-3 bg-gray-50 rounded-lg border border-gray-200">
+            <p className="text-sm font-semibold text-gray-700 mb-2">
+              Coordinates:
+            </p>
+
+            <p className="text-sm text-gray-800">
+              <span className="font-medium">Decimal:</span>{" "}
+              {Number(mapModal.lat).toFixed(6)},{" "}
+              {Number(mapModal.lon).toFixed(6)}
+            </p>
+
+            {mapModal.latDegrees &&
+              mapModal.latMinutes &&
+              mapModal.latSeconds &&
+              mapModal.lonDegrees &&
+              mapModal.lonMinutes &&
+              mapModal.lonSeconds && (
+                <p className="text-sm text-gray-800 mt-1">
+                  <span className="font-medium">DMS:</span>{" "}
+                  {mapModal.latDegrees}° {mapModal.latMinutes}'{" "}
+                  {Number(mapModal.latSeconds).toFixed(2)}" ,{" "}
+                  {mapModal.lonDegrees}° {mapModal.lonMinutes}'{" "}
+                  {Number(mapModal.lonSeconds).toFixed(2)}"
+                </p>
+              )}
+          </div>
+
+          {/* Map Preview */}
+          <div className="w-full h-64 mb-3 rounded-lg overflow-hidden">
+            <iframe
+              width="100%"
+              height="100%"
+              src={`https://maps.google.com/maps?q=${mapModal.lat},${mapModal.lon}&z=15&output=embed`}
+              title="map"
+            ></iframe>
+          </div>
+
+          {/* Google Maps Button */}
+          <a
+            className="inline-block w-full text-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-semibold text-sm transition"
+            href={`https://www.google.com/maps/search/?api=1&query=${mapModal.lat},${mapModal.lon}`}
+            target="_blank"
+            rel="noreferrer"
+          >
+            📍 Open in Google Maps
+          </a>
+        </>
+      ) : (
+        <>
+          {/* Fallback using address query */}
+          <div className="w-full h-64 mb-3 rounded-lg overflow-hidden">
+            <iframe
+              width="100%"
+              height="100%"
+              src={`https://maps.google.com/maps?q=${encodeURIComponent(
+                mapModal.query || mapModal.city || ""
+              )}&z=12&output=embed`}
+              title="map"
+            ></iframe>
+          </div>
+
+          <a
+            className="inline-block w-full text-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-semibold text-sm transition"
+            href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
+              mapModal.query || mapModal.city || ""
+            )}`}
+            target="_blank"
+            rel="noreferrer"
+          >
+            📍 Open in Google Maps
+          </a>
+        </>
+      )}
+
+      {/* Close Button */}
+      <button
+        onClick={() => setMapModal(null)}
+        className="mt-4 w-full bg-red-500 text-white py-2 rounded-lg hover:bg-red-600 transition"
+      >
+        Close
+      </button>
+    </div>
+  </div>
+)}
+
 
     </div>
   );

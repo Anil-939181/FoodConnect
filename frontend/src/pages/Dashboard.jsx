@@ -298,31 +298,31 @@ function Dashboard() {
           <AnimatedStat
             value={stats.totalRequests}
             label="Total Requests"
-            icon="📋"
+            
             color="purple"
           />
           <AnimatedStat
             value={stats.requestedCount}
             label="Requested"
-            icon="🔔"
+           
             color="blue"
           />
           <AnimatedStat
             value={stats.reservedCount}
             label="Reserved"
-            icon="🔒"
+           
             color="orange"
           />
           <AnimatedStat
             value={stats.completedCount}
             label="Fulfilled"
-            icon="✨"
+          
             color="green"
           />
           <AnimatedStat
             value={stats.cancelledCount}
             label="Cancelled"
-            icon="❌"
+            
             color="red"
           />
         </div>
@@ -353,9 +353,6 @@ function Dashboard() {
                 <thead>
                   <tr className="border-b border-gray-200 bg-gray-50">
                     <th className="px-8 py-4 text-left text-sm font-semibold text-gray-700">
-                      Request ID
-                    </th>
-                    <th className="px-8 py-4 text-left text-sm font-semibold text-gray-700">
                       Items
                     </th>
                     <th className="px-8 py-4 text-left text-sm font-semibold text-gray-700">
@@ -375,11 +372,6 @@ function Dashboard() {
                       key={request._id}
                       className="border-b border-gray-200 hover:bg-gray-50 transition-colors"
                     >
-                      <td className="px-8 py-4">
-                        <span className="font-mono text-sm text-gray-700">
-                          {request._id.slice(-8).toUpperCase()}
-                        </span>
-                      </td>
                       <td className="px-8 py-4 text-gray-600">
                         {request.itemsCount} item{request.itemsCount !== 1 ? "s" : ""}
                       </td>

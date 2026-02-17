@@ -46,41 +46,28 @@ function Donate() {
 
     setLoading(true);
 
-    navigator.geolocation.getCurrentPosition(
-      async (position) => {
-        const latitude = position.coords.latitude;
-        const longitude = position.coords.longitude;
+    try {
+      await API.post("/donations", {
+        items: items.map(item => ({
+          ...item,
+          quantity: Number(item.quantity)
+        })),
+        mealType,
+        expiryTime
+      });
 
-        try {
-          await API.post("/donations", {
-            items: items.map(item => ({
-              ...item,
-              quantity: Number(item.quantity)
-            })),
-            mealType,
-            expiryTime,
-            latitude,
-            longitude,
-          });
+      toast.success("Donation created successfully");
 
-          toast.success("Donation created successfully");
+      // Reset form
+      setItems([{ name: "", quantity: "", unit: "units" }]);
+      setMealType("other");
+      setExpiryTime("");
 
-          // Reset form
-          setItems([{ name: "", quantity: "", unit: "units" }]);
-          setMealType("other");
-          setExpiryTime("");
-
-        } catch (error) {
-          toast.error(error.response?.data?.message || "Error creating donation");
-        } finally {
-          setLoading(false);
-        }
-      },
-      () => {
-        toast.error("Location access denied");
-        setLoading(false);
-      }
-    );
+    } catch (error) {
+      toast.error(error.response?.data?.message || "Error creating donation");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (

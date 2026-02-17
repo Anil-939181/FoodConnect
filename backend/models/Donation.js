@@ -33,17 +33,6 @@ mealType: {
         type: Date,
         required: true
     },
-    location: {
-        type: {
-            type: String,
-            enum: ["Point"],
-            default: "Point"
-        },
-        coordinates: {
-            type: [Number], // [longitude, latitude]
-            required: true
-        }
-    },
     status: {
   type: String,
   enum: ["available", "requested", "reserved", "completed", "expired"],
@@ -64,7 +53,6 @@ acceptedBy: {
 
 
 }, { timestamps: true });
-
-donationSchema.index({ location: "2dsphere" });
+donationSchema.index({ donor: 1 });
 
 module.exports = mongoose.model("Donation", donationSchema);

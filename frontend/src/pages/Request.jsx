@@ -40,33 +40,20 @@ function Request() {
   const handleSubmit = (e) => {
     e.preventDefault();
 
-    navigator.geolocation.getCurrentPosition(
-      (position) => {
-        const latitude = position.coords.latitude;
-        const longitude = position.coords.longitude;
-
-        const cleanItems = requestedItems.filter(
-          item => item.name.trim() !== ""
-        );
-
-        const searchData = {
-          requestedItems: cleanItems,
-          mealType,
-          requiredBefore,
-          latitude,
-          longitude
-        };
-
-
-        toast.success("Searching for available donations...");
-
-        // Navigate WITHOUT creating request
-        navigate("/matches", { state: searchData });
-      },
-      () => {
-        toast.error("Location access denied");
-      }
+    const cleanItems = requestedItems.filter(
+      item => item.name.trim() !== ""
     );
+
+    const searchData = {
+      requestedItems: cleanItems,
+      mealType,
+      requiredBefore
+    };
+
+    toast.success("Searching for available donations...");
+
+    // Navigate WITHOUT creating request
+    navigate("/matches", { state: searchData });
   };
 
   return (

@@ -5,7 +5,12 @@ const jwt = require("jsonwebtoken");
 // Register
 exports.register = async (req, res) => {
     try {
-        const { name, email, password, role, phone, longitude, latitude ,state, district, pincode,city} = req.body;
+        const { 
+            name, email, password, role, phone, longitude, latitude, 
+            state, district, pincode, city,
+            latDegrees, latMinutes, latSeconds,
+            lonDegrees, lonMinutes, lonSeconds
+        } = req.body;
         console.log(role);
         const existingUser = await User.findOne({ email });
         if (existingUser) {
@@ -24,10 +29,14 @@ exports.register = async (req, res) => {
             district, 
             pincode,
             city,
-            location: {
-                type: "Point",
-                coordinates: [longitude, latitude]
-            }
+            latitude,
+            longitude,
+            latDegrees,
+            latMinutes,
+            latSeconds,
+            lonDegrees,
+            lonMinutes,
+            lonSeconds
         });
 
         res.status(201).json({ message: "User registered successfully" });
@@ -60,6 +69,19 @@ exports.login = async (req, res) => {
         const role=user.role;
         res.json({ token,role });
 
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
+// Get current user
+exports.getCurrentUser = async (req, res) => {
+    try {
+        const user = await User.findById(req.user.id).select("-password");
+        if (!user) {
+            return res.status(404).json({ message: "User not found" });
+        }
+        res.json(user);
     } catch (error) {
         res.status(500).json({ message: error.message });
     }

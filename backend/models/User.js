@@ -25,6 +25,21 @@ city: {
   type: String,
   required: true
 },
+latitude: {
+  type: Number,
+  default: null
+},
+longitude: {
+  type: Number,
+  default: null
+},
+// DMS (Degrees, Minutes, Seconds) format for more accurate location
+latDegrees: { type: Number, default: null },
+latMinutes: { type: Number, default: null },
+latSeconds: { type: Number, default: null },
+lonDegrees: { type: Number, default: null },
+lonMinutes: { type: Number, default: null },
+lonSeconds: { type: Number, default: null },
 
     phone: String
 }, { timestamps: true });

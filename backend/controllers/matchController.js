@@ -41,52 +41,59 @@ exports.searchMatches = async (req, res) => {
       baseQuery.mealType = mealType;
     }
 
-    const donations = await Donation.aggregate([
-      {
-        $geoNear: {
-          near: {
-            type: "Point",
-            coordinates: [Number(longitude), Number(latitude)]
-          },
-          distanceField: "distance",
-          maxDistance: radius * 1000,
-          spherical: true,
-          query: baseQuery
-        }
-      },
-      {
-        $lookup: {
-          from: "users",
-          localField: "donor",
-          foreignField: "_id",
-          as: "donor"
-        }
-      },
-      { $unwind: "$donor" },
-      {
-        $project: {
-          mealType: 1,
-          items: 1,
-          expiryTime: 1,
-          status: 1,
-          requestedBy: 1,
-          acceptedBy: 1,
-          location: 1,
-          donor: {
-            name: "$donor.name",
-            city: "$donor.city"
-          },
-          distance: { $divide: ["$distance", 1000] }
-        }
-      }
-    ]);
+    // 🔥 Get donations and their donors, then compute distance in app
+    const donations = await Donation.find(baseQuery)
+      .populate("donor", "name city latitude longitude")
+      .populate("requestedBy", "name")
+      .populate("acceptedBy", "name");
 
-    let finalResults = donations;
+    // 🔥 Filter by radius using user (donor) location, not donation location
+    const filtered = donations.filter(donation => {
+      if (!donation.donor || donation.donor.latitude === null || donation.donor.longitude === null) {
+        return false;
+      }
+
+      // Haversine distance calculation (in meters)
+      const toRad = (deg) => (deg * Math.PI) / 180;
+      const R = 6371000; // Earth's radius in meters
+      const dLat = toRad(donation.donor.latitude - latitude);
+      const dLon = toRad(donation.donor.longitude - longitude);
+      const a =
+        Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+        Math.cos(toRad(latitude)) * Math.cos(toRad(donation.donor.latitude)) *
+        Math.sin(dLon / 2) * Math.sin(dLon / 2);
+      const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+      const distanceMeters = R * c;
+      const distanceKm = distanceMeters / 1000;
+
+      return distanceKm <= radius;
+    });
+
+    // 🔥 Add distance to each result
+    const withDistance = filtered.map(donation => {
+      const toRad = (deg) => (deg * Math.PI) / 180;
+      const R = 6371000;
+      const dLat = toRad(donation.donor.latitude - latitude);
+      const dLon = toRad(donation.donor.longitude - longitude);
+      const a =
+        Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+        Math.cos(toRad(latitude)) * Math.cos(toRad(donation.donor.latitude)) *
+        Math.sin(dLon / 2) * Math.sin(dLon / 2);
+      const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+      const distanceKm = (R * c) / 1000;
+
+      return {
+        ...donation.toObject(),
+        distance: distanceKm
+      };
+    });
+
+    let finalResults = withDistance;
 
     // 🔥 Apply scoring only if items provided
     if (requestedItems && requestedItems.length > 0) {
 
-      const scoredResults = donations.map(donation => {
+      const scoredResults = withDistance.map(donation => {
 
         let score = 0;
 
