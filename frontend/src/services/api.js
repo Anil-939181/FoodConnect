@@ -1,15 +1,36 @@
 import axios from "axios";
+import { show, hide } from "../utils/loadingManager";
 
 const API = axios.create({
-    baseURL: "http://localhost:5000/api"
+    baseURL: "http://localhost:5000/api",
 });
 
-API.interceptors.request.use((req) => {
-    const token = localStorage.getItem("token");
-    if (token) {
-        req.headers.Authorization = `Bearer ${token}`;
+API.interceptors.request.use(
+    (req) => {
+        // increment loading counter for each outgoing request
+        show();
+        const token = localStorage.getItem("token");
+        if (token) {
+            req.headers.Authorization = `Bearer ${token}`;
+        }
+        return req;
+    },
+    (error) => {
+        // ensure loading is decremented on request error
+        hide();
+        return Promise.reject(error);
     }
-    return req;
-});
+);
+
+API.interceptors.response.use(
+    (res) => {
+        hide();
+        return res;
+    },
+    (error) => {
+        hide();
+        return Promise.reject(error);
+    }
+);
 
 export default API;
