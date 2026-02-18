@@ -1,22 +1,20 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import API from "../services/api";
 import { decimalToDMS, dmsToDecimal } from "../utils/coordinates";
 import { EyeOpen, EyeClosed } from "../components/EyeIcons";
 
-function Register() {
+function Account() {
   const navigate = useNavigate();
-  const [role, setRole] = useState("donor");
-  const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
-  const [phone, setPhone] = useState("");
+  const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(false);
   const [otpSent, setOtpSent] = useState(false);
   const [otp, setOtp] = useState("");
-  const [loading, setLoading] = useState(false);
 
+  // form states
+  const [name, setName] = useState("");
+  const [phone, setPhone] = useState("");
   const [state, setState] = useState("");
   const [district, setDistrict] = useState("");
   const [pincode, setPincode] = useState("");
@@ -29,17 +27,59 @@ function Register() {
   const [mapSearchResults, setMapSearchResults] = useState([]);
   const [tempLat, setTempLat] = useState("");
   const [tempLon, setTempLon] = useState("");
-  // DMS format states
   const [latDegrees, setLatDegrees] = useState("");
   const [latMinutes, setLatMinutes] = useState("");
   const [latSeconds, setLatSeconds] = useState("");
   const [lonDegrees, setLonDegrees] = useState("");
   const [lonMinutes, setLonMinutes] = useState("");
   const [lonSeconds, setLonSeconds] = useState("");
-  const [locationFormat, setLocationFormat] = useState("decimal"); // "decimal" or "dms"
+  const [locationFormat, setLocationFormat] = useState("decimal");
+
+  const [showPhone, setShowPhone] = useState(false); // placeholder if want show
+
   const mapRef = useRef(null);
   const mapInstanceRef = useRef(null);
   const markerRef = useRef(null);
+
+  useEffect(() => {
+    const fetchUser = async () => {
+      try {
+        const res = await API.get("/auth/me");
+        setUser(res.data);
+        setName(res.data.name || "");
+        setPhone(res.data.phone || "");
+        setState(res.data.state || "");
+        setDistrict(res.data.district || "");
+        setPincode(res.data.pincode || "");
+        setCity(res.data.city || "");
+        setLatitude(res.data.latitude?.toString() || "");
+        setLongitude(res.data.longitude?.toString() || "");
+        setLatDegrees(res.data.latDegrees?.toString() || "");
+        setLatMinutes(res.data.latMinutes?.toString() || "");
+        setLatSeconds(res.data.latSeconds?.toString() || "");
+        setLonDegrees(res.data.lonDegrees?.toString() || "");
+        setLonMinutes(res.data.lonMinutes?.toString() || "");
+        setLonSeconds(res.data.lonSeconds?.toString() || "");
+      } catch (err) {
+        toast.error("Unable to load user data.");
+      }
+    };
+    fetchUser();
+  }, []);
+
+  const handleSendOtp = async () => {
+    setLoading(true);
+    try {
+      await API.post("/auth/send-otp", { email: user.email, purpose: "UPDATE" });
+      setOtpSent(true);
+      toast.success("OTP sent to your email.");
+      
+    } catch (error) {
+      toast.error(error.response?.data?.message || "Failed to send OTP.");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleGetCurrentLocation = () => {
     setLocationLoading(true);
@@ -47,21 +87,16 @@ function Register() {
       (position) => {
         const lat = position.coords.latitude.toString();
         const lon = position.coords.longitude.toString();
-        
         setLatitude(lat);
         setLongitude(lon);
-
-        // Convert to DMS
         const latDMS = decimalToDMS(parseFloat(lat));
         const lonDMS = decimalToDMS(parseFloat(lon));
-
         setLatDegrees(latDMS.degrees.toString());
         setLatMinutes(latDMS.minutes.toString());
         setLatSeconds(latDMS.seconds.toString());
         setLonDegrees(lonDMS.degrees.toString());
         setLonMinutes(lonDMS.minutes.toString());
         setLonSeconds(lonDMS.seconds.toString());
-
         toast.success("Location captured");
         setLocationLoading(false);
       },
@@ -72,7 +107,6 @@ function Register() {
     );
   };
 
-  // Handle DMS to Decimal conversion
   const handleDMSChange = () => {
     if (latDegrees && latMinutes && latSeconds && lonDegrees && lonMinutes && lonSeconds) {
       const lat = dmsToDecimal(
@@ -85,18 +119,15 @@ function Register() {
         parseInt(lonMinutes),
         parseFloat(lonSeconds)
       );
-
       setLatitude(lat.toFixed(6));
       setLongitude(lon.toFixed(6));
     }
   };
 
-  // Handle Decimal to DMS conversion
   const handleDecimalChange = () => {
     if (latitude && longitude) {
       const latDMS = decimalToDMS(parseFloat(latitude));
       const lonDMS = decimalToDMS(parseFloat(longitude));
-
       setLatDegrees(latDMS.degrees.toString());
       setLatMinutes(latDMS.minutes.toString());
       setLatSeconds(latDMS.seconds.toFixed(2));
@@ -106,69 +137,44 @@ function Register() {
     }
   };
 
-  // Initialize map
   useEffect(() => {
     if (!showMapPicker || !mapRef.current) return;
-
-    // Check if already initialized
     if (mapInstanceRef.current) {
       mapInstanceRef.current.invalidateSize();
       return;
     }
-
-    // Small delay to ensure DOM is ready
     const timer = setTimeout(() => {
       if (!window.L) {
         toast.error("Map library not loaded. Please refresh the page.");
         return;
       }
-
       try {
         const L = window.L;
-        
-        // Initialize map centered on India
-        const map = L.map(mapRef.current, {
-          attributionControl: true
-        }).setView([20.5937, 78.9629], 5);
-        
+        const map = L.map(mapRef.current, { attributionControl: true }).setView([20.5937, 78.9629], 5);
         L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
           maxZoom: 19,
           minZoom: 2,
           attribution: "© OpenStreetMap contributors"
         }).addTo(map);
-
         mapInstanceRef.current = map;
-
-        // Add click handler to map
         map.on("click", (e) => {
           const { lat, lng } = e.latlng;
           setTempLat(lat.toString());
           setTempLon(lng.toString());
-
-          // Remove old marker
           if (markerRef.current) {
             map.removeLayer(markerRef.current);
           }
-
-          // Add new marker
           markerRef.current = L.marker([lat, lng]).addTo(map).bindPopup(
             `<div class="text-sm"><b>Selected Location</b><br/>Lat: ${lat.toFixed(4)}<br/>Lon: ${lng.toFixed(4)}</div>`
           ).openPopup();
-
           toast.success("Location selected. Click confirm to save.");
         });
-
-        // Force map to recalculate size
-        setTimeout(() => {
-          map.invalidateSize();
-        }, 100);
-
+        setTimeout(() => { map.invalidateSize(); }, 100);
       } catch (error) {
         console.error("Map initialization error:", error);
         toast.error("Error initializing map. Please try again.");
       }
     }, 100);
-
     return () => clearTimeout(timer);
   }, [showMapPicker]);
 
@@ -177,32 +183,23 @@ function Register() {
       toast.error("Please enter a location to search");
       return;
     }
-
     try {
       const response = await fetch(
         `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(mapSearchQuery)}&format=json&limit=5`
       );
       const results = await response.json();
-      
       if (results.length === 0) {
         toast.error("No locations found. Try a different search.");
         setMapSearchResults([]);
       } else {
         setMapSearchResults(results);
-
-        // Zoom to first result
         if (mapInstanceRef.current && results[0]) {
           const lat = parseFloat(results[0].lat);
           const lon = parseFloat(results[0].lon);
-          
           mapInstanceRef.current.setView([lat, lon], 13);
-          
-          // Remove old marker
           if (markerRef.current) {
             mapInstanceRef.current.removeLayer(markerRef.current);
           }
-
-          // Add marker at search result
           const L = window.L;
           markerRef.current = L.marker([lat, lon])
             .addTo(mapInstanceRef.current)
@@ -210,8 +207,6 @@ function Register() {
               `<div class="text-sm"><b>${results[0].name}</b><br/>Lat: ${lat.toFixed(4)}<br/>Lon: ${lon.toFixed(4)}</div>`
             )
             .openPopup();
-          
-          // Set temp values
           setTempLat(lat.toString());
           setTempLon(lon.toString());
         }
@@ -227,30 +222,18 @@ function Register() {
       toast.error("Please select a location on the map");
       return;
     }
-
     setLatitude(tempLat);
     setLongitude(tempLon);
-
-    // Convert to DMS
     const latDMS = decimalToDMS(parseFloat(tempLat));
     const lonDMS = decimalToDMS(parseFloat(tempLon));
-
     setLatDegrees(latDMS.degrees.toString());
     setLatMinutes(latDMS.minutes.toString());
     setLatSeconds(latDMS.seconds.toFixed(2));
     setLonDegrees(lonDMS.degrees.toString());
     setLonMinutes(lonDMS.minutes.toString());
     setLonSeconds(lonDMS.seconds.toFixed(2));
-    
-    // Clean up map
-    if (mapInstanceRef.current) {
-      mapInstanceRef.current.remove();
-      mapInstanceRef.current = null;
-    }
-    if (markerRef.current) {
-      markerRef.current = null;
-    }
-    
+    if (mapInstanceRef.current) { mapInstanceRef.current.remove(); mapInstanceRef.current = null; }
+    if (markerRef.current) { markerRef.current = null; }
     setShowMapPicker(false);
     setMapSearchResults([]);
     setMapSearchQuery("");
@@ -259,132 +242,57 @@ function Register() {
     toast.success("Location confirmed");
   };
 
-  const handleRegister = async (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-
-    if (!latitude || !longitude) {
-      toast.error("Please provide location (use current location or enter manually)");
-      return;
-    }
-
-    if (password !== confirmPassword) {
-      toast.error("Passwords do not match.");
-      return;
-    }
-    // Password strength validation (min 8 chars, 1 uppercase, 1 number)
-    const strong = /^(?=.*[A-Z])(?=.*\d).{8,}$/;
-    if (!strong.test(password)) {
-      toast.error("Password must be at least 8 characters, include an uppercase letter and a number.");
-      return;
-    }
     if (!otpSent) {
-      toast.error("Please verify your email with OTP.");
+      toast.error("Please verify your email before saving.");
       return;
     }
-    const verified = await handleVerifyOtp();
-    if (!verified) return;
-
+    if (!otp) {
+      toast.error("Please enter OTP.");
+      return;
+    }
+    setLoading(true);
     try {
-      await API.post("/auth/register", {
+      await API.put("/auth/update-profile", {
         name,
-        email,
-        password,
-        role,
+        phone,
         state,
         district,
         pincode,
         city,
-        latitude: parseFloat(latitude),
-        longitude: parseFloat(longitude),
-        // Include DMS format for more accuracy
+        latitude: latitude ? parseFloat(latitude) : null,
+        longitude: longitude ? parseFloat(longitude) : null,
         latDegrees: latDegrees ? parseInt(latDegrees) : null,
         latMinutes: latMinutes ? parseInt(latMinutes) : null,
         latSeconds: latSeconds ? parseFloat(latSeconds) : null,
         lonDegrees: lonDegrees ? parseInt(lonDegrees) : null,
         lonMinutes: lonMinutes ? parseInt(lonMinutes) : null,
-        lonSeconds: lonSeconds ? parseFloat(lonSeconds) : null
+        lonSeconds: lonSeconds ? parseFloat(lonSeconds) : null,
+        otp
       });
-
-      toast.success("Registration successful! Please login.");
-      navigate("/login");
-
+      toast.success("Profile updated successfully");
+      setOtpSent(false);
+      setOtp("");
     } catch (error) {
-      const errorMessage = error.response?.data?.message || "Registration failed. Please try again.";
-      toast.error(errorMessage);
-    }
-  };
-
-  const handleSendOtp = async (e) => {
-    e.preventDefault();
-    if (!email) {
-      toast.error("Please enter your email.");
-      return;
-    }
-    setLoading(true);
-    try {
-      await API.post("/auth/send-otp", { email, purpose: "VERIFY" });
-      setOtpSent(true);
-      toast.success("OTP sent to your email.");
-    } catch (error) {
-      toast.error(error.response?.data?.message || "Failed to send OTP.");
+      toast.error(error.response?.data?.message || "Failed to update profile.");
     } finally {
       setLoading(false);
     }
   };
 
-  const handleVerifyOtp = async () => {
-    if (!otp) {
-      toast.error("Please enter the OTP.");
-      return false;
-    }
-    setLoading(true);
-    try {
-      await API.post("/auth/verify-otp", { email, otp, purpose: "VERIFY" });
-      toast.success("Email verified!");
-      return true;
-    } catch (error) {
-      toast.error(error.response?.data?.message || "Invalid OTP.");
-      return false;
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const [showPassword, setShowPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  // reuse location logic from register -- omitted for brevity
+  // ... replicate functions handleGetCurrentLocation, conversions, map picker
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-100">
-
       <div className="bg-white shadow-xl rounded-xl p-8 w-full max-w-lg">
         <h2 className="text-2xl font-bold text-center mb-6 text-gray-800">
-          Create Account
+          Edit Account Details
         </h2>
-
-        <form onSubmit={handleRegister} className="space-y-4">
-
-          {/* Role Selection */}
+        <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="block text-sm text-gray-600 mb-1">
-              Register As
-            </label>
-            <select
-              value={role}
-              onChange={(e) => setRole(e.target.value)}
-              className="w-full border rounded-lg p-2"
-            >
-              <option value="donor">Donor</option>
-              <option value="organization">Organization</option>
-            </select>
-          </div>
-
-          {/* Dynamic Name Label */}
-          <div>
-            <label className="block text-sm text-gray-600 mb-1">
-              {role === "organization"
-                ? "Organization Name"
-                : "Full Name"}
-            </label>
+            <label className="block text-sm text-gray-600 mb-1">Name</label>
             <input
               type="text"
               required
@@ -393,76 +301,20 @@ function Register() {
               onChange={(e) => setName(e.target.value)}
             />
           </div>
-
-          <input
-            type="email"
-            placeholder="Email"
-            required
-            className="w-full border rounded-lg p-2"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-          />
-
-          <input
-            type={showPassword ? "text" : "password"}
-            placeholder="Password"
-            required
-            className="w-full border rounded-lg p-2 pr-10"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-          />
-          <button
-            type="button"
-            className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-500"
-            tabIndex={-1}
-            onClick={() => setShowPassword((v) => !v)}
-            style={{marginLeft: '-2.5rem'}}
-          >
-            {showPassword ? <EyeOpen /> : <EyeClosed />}
-          </button>
-
-          <input
-            type={showConfirmPassword ? "text" : "password"}
-            placeholder="Confirm Password"
-            required
-            className="w-full border rounded-lg p-2 pr-10"
-            value={confirmPassword}
-            onChange={(e) => setConfirmPassword(e.target.value)}
-          />
-          <button
-            type="button"
-            className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-500"
-            tabIndex={-1}
-            onClick={() => setShowConfirmPassword((v) => !v)}
-            style={{marginLeft: '-2.5rem'}}
-          >
-            {showConfirmPassword ? <EyeOpen /> : <EyeClosed />}
-          </button>
-
-          {/* Email OTP Section */}
-          <div className="flex gap-2 items-center">
-            <button
-              type="button"
-              onClick={handleSendOtp}
-              className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 font-semibold"
-              disabled={loading || otpSent}
-            >
-              {otpSent ? "OTP Sent" : loading ? "Sending..." : "Send OTP"}
-            </button>
-            {otpSent && (
-              <input
-                type="text"
-                placeholder="Enter OTP"
-                className="border rounded-lg p-2"
-                value={otp}
-                onChange={(e) => setOtp(e.target.value)}
-              />
-            )}
+          <div>
+            <label className="block text-sm text-gray-600 mb-1">Phone</label>
+            <input
+              type="text"
+              required
+              className="w-full border rounded-lg p-2"
+              value={phone}
+              onChange={(e) => setPhone(e.target.value)}
+              pattern="[0-9]{10,15}"
+              title="Enter a valid phone number"
+            />
           </div>
-
-          {/* Address Fields */}
+          {/* Address fields */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-
             <input
               type="text"
               placeholder="State"
@@ -471,7 +323,6 @@ function Register() {
               value={state}
               onChange={(e) => setState(e.target.value)}
             />
-
             <input
               type="text"
               placeholder="District"
@@ -480,7 +331,6 @@ function Register() {
               value={district}
               onChange={(e) => setDistrict(e.target.value)}
             />
-
           </div>
           <input
             type="text"
@@ -582,7 +432,6 @@ function Register() {
             {locationFormat === "dms" && (
               <div className="space-y-3">
                 <p className="text-xs text-gray-500">Degrees, Minutes, Seconds</p>
-                
                 <div>
                   <label className="block text-xs font-semibold text-gray-700 mb-2">
                     Latitude
@@ -690,163 +539,44 @@ function Register() {
             )}
           </div>
 
-          <input
-            type="text"
-            placeholder="Phone Number"
-            required
-            className="w-full border rounded-lg p-2"
-            value={phone}
-            onChange={(e) => setPhone(e.target.value)}
-            pattern="[0-9]{10,15}"
-            title="Enter a valid phone number"
-          />
-
+          {/* OTP verification section */}
+          <div className="flex gap-2 items-center">
+            <button
+              type="button"
+              onClick={handleSendOtp}
+              className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 font-semibold"
+              disabled={loading || otpSent}
+            >
+              {otpSent ? "OTP Sent" : loading ? "Sending..." : "Send OTP"}
+            </button>
+            {otpSent && (
+              <input
+                type="text"
+                placeholder="Enter OTP"
+                className="border rounded-lg p-2"
+                value={otp}
+                onChange={(e) => setOtp(e.target.value)}
+              />
+            )}
+          </div>
           <button
             type="submit"
             className="w-full bg-green-600 text-white py-3 rounded-lg font-semibold hover:bg-green-700 transition"
+            disabled={loading}
           >
-            Register
+            {loading ? "Saving..." : "Save Changes"}
           </button>
-
         </form>
-      </div>
 
-      {/* Map Picker Modal */}
-      {showMapPicker && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-hidden flex flex-col">
-            {/* Modal Header */}
-            <div className="bg-white border-b p-4 flex justify-between items-center">
-              <h3 className="text-lg font-bold text-gray-800">Select Your Location</h3>
-              <button
-                onClick={() => {
-                  // Clean up map
-                  if (mapInstanceRef.current) {
-                    mapInstanceRef.current.remove();
-                    mapInstanceRef.current = null;
-                  }
-                  if (markerRef.current) {
-                    markerRef.current = null;
-                  }
-                  
-                  setShowMapPicker(false);
-                  setMapSearchResults([]);
-                  setMapSearchQuery("");
-                  setTempLat("");
-                  setTempLon("");
-                }}
-                className="text-gray-500 hover:text-gray-700 text-2xl"
-              >
-                ×
-              </button>
-            </div>
-
-            {/* Search Bar */}
-            <div className="border-b p-4 bg-white">
-              <div className="flex gap-2">
-                <input
-                  type="text"
-                  placeholder="Search location (e.g., 'Delhi', 'Times Square', 'Mumbai')"
-                  value={mapSearchQuery}
-                  onChange={(e) => setMapSearchQuery(e.target.value)}
-                  onKeyPress={(e) => e.key === "Enter" && handleMapSearchZoom()}
-                  className="flex-1 border rounded-lg p-2"
-                  autoFocus
-                />
-                <button
-                  onClick={handleMapSearchZoom}
-                  className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 font-semibold whitespace-nowrap"
-                >
-                  Search
-                </button>
-              </div>
-              <p className="text-xs text-gray-500 mt-2">
-                Click on the map to select, or search and click results below
-              </p>
-            </div>
-
-            {/* Main content area */}
-            <div className="flex-1 flex flex-col min-h-0 overflow-hidden">
-              {/* Map Container - takes 2/3 of space */}
-              <div className="flex-1 bg-gray-100 relative min-h-[350px]">
-                <div
-                  ref={mapRef}
-                  style={{ width: "100%", height: "100%", minHeight: "350px" }}
-                  className="z-0"
-                />
-              </div>
-
-              {/* Search Results Section - takes 1/3 of space */}
-              {mapSearchResults.length > 0 && (
-                <div className="border-t p-4 bg-gray-50 max-h-[200px] overflow-y-auto">
-                  <p className="text-sm font-semibold text-gray-700 mb-2">
-                    Click a result or search on map:
-                  </p>
-                  <div className="space-y-2">
-                    {mapSearchResults.map((result, idx) => (
-                      <div
-                        key={idx}
-                        onClick={() => {
-                          const lat = parseFloat(result.lat);
-                          const lon = parseFloat(result.lon);
-                          setTempLat(lat.toString());
-                          setTempLon(lon.toString());
-                          
-                          // Zoom map to result
-                          if (mapInstanceRef.current) {
-                            mapInstanceRef.current.setView([lat, lon], 13);
-                            
-                            // Remove old marker
-                            if (markerRef.current) {
-                              mapInstanceRef.current.removeLayer(markerRef.current);
-                            }
-                            
-                            // Add marker
-                            markerRef.current = window.L.marker([lat, lon])
-                              .addTo(mapInstanceRef.current)
-                              .bindPopup(
-                                `<div class="text-sm"><b>${result.name}</b><br/>Lat: ${lat.toFixed(4)}<br/>Lon: ${lon.toFixed(4)}</div>`
-                              )
-                              .openPopup();
-                          }
-                        }}
-                        className="p-2 bg-white border rounded-lg hover:bg-blue-50 cursor-pointer transition text-sm"
-                      >
-                        <p className="font-semibold text-gray-800">{result.name}</p>
-                        <p className="text-xs text-gray-600">
-                          📍 {parseFloat(result.lat).toFixed(4)}, {parseFloat(result.lon).toFixed(4)}
-                        </p>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-            </div>
-
-            {/* Footer */}
-            <div className="border-t p-4 bg-gray-50 flex gap-2 items-center justify-between">
-              <div className="text-sm">
-                {tempLat && tempLon ? (
-                  <span className="text-green-600 font-semibold">
-                    ✓ Location selected: {parseFloat(tempLat).toFixed(4)}, {parseFloat(tempLon).toFixed(4)}
-                  </span>
-                ) : (
-                  <span className="text-gray-500">
-                    Click on map or select from search results
-                  </span>
-                )}
-              </div>
-              <div className="flex gap-2">
-                <button
-                  onClick={handleConfirmMapLocation}
-                  disabled={!tempLat || !tempLon}
-                  className="bg-green-600 text-white px-6 py-2 rounded-lg hover:bg-green-700 font-semibold disabled:bg-gray-400 disabled:cursor-not-allowed"
-                >
-                  Confirm Location
-                </button>
+        {/* Map Picker Modal */}
+        {showMapPicker && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-hidden flex flex-col">
+              {/* Modal Header */}
+              <div className="bg-white border-b p-4 flex justify-between items-center">
+                <h3 className="text-lg font-bold text-gray-800">Select Your Location</h3>
                 <button
                   onClick={() => {
-                    // Clean up map
                     if (mapInstanceRef.current) {
                       mapInstanceRef.current.remove();
                       mapInstanceRef.current = null;
@@ -854,24 +584,143 @@ function Register() {
                     if (markerRef.current) {
                       markerRef.current = null;
                     }
-                    
                     setShowMapPicker(false);
                     setMapSearchResults([]);
                     setMapSearchQuery("");
                     setTempLat("");
                     setTempLon("");
                   }}
-                  className="bg-gray-400 text-white px-6 py-2 rounded-lg hover:bg-gray-500 font-semibold"
+                  className="text-gray-500 hover:text-gray-700 text-2xl"
                 >
-                  Close
+                  ×
                 </button>
+              </div>
+
+              {/* Search Bar */}
+              <div className="border-b p-4 bg-white">
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    placeholder="Search location (e.g., 'Delhi', 'Times Square', 'Mumbai')"
+                    value={mapSearchQuery}
+                    onChange={(e) => setMapSearchQuery(e.target.value)}
+                    onKeyPress={(e) => e.key === "Enter" && handleMapSearchZoom()}
+                    className="flex-1 border rounded-lg p-2"
+                    autoFocus
+                  />
+                  <button
+                    onClick={handleMapSearchZoom}
+                    className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 font-semibold whitespace-nowrap"
+                  >
+                    Search
+                  </button>
+                </div>
+                <p className="text-xs text-gray-500 mt-2">
+                  Click on the map to select, or search and click results below
+                </p>
+              </div>
+
+              {/* Main content area */}
+              <div className="flex-1 flex flex-col min-h-0 overflow-hidden">
+                {/* Map Container - takes 2/3 of space */}
+                <div className="flex-1 bg-gray-100 relative min-h-[350px]">
+                  <div
+                    ref={mapRef}
+                    style={{ width: "100%", height: "100%", minHeight: "350px" }}
+                    className="z-0"
+                  />
+                </div>
+
+                {/* Search Results Section - takes 1/3 of space */}
+                {mapSearchResults.length > 0 && (
+                  <div className="border-t p-4 bg-gray-50 max-h-[200px] overflow-y-auto">
+                    <p className="text-sm font-semibold text-gray-700 mb-2">
+                      Click a result or search on map:
+                    </p>
+                    <div className="space-y-2">
+                      {mapSearchResults.map((result, idx) => (
+                        <div
+                          key={idx}
+                          onClick={() => {
+                            const lat = parseFloat(result.lat);
+                            const lon = parseFloat(result.lon);
+                            setTempLat(lat.toString());
+                            setTempLon(lon.toString());
+                            if (mapInstanceRef.current) {
+                              mapInstanceRef.current.setView([lat, lon], 13);
+                              if (markerRef.current) {
+                                mapInstanceRef.current.removeLayer(markerRef.current);
+                              }
+                              markerRef.current = window.L.marker([lat, lon])
+                                .addTo(mapInstanceRef.current)
+                                .bindPopup(
+                                  `<div class="text-sm"><b>${result.name}</b><br/>Lat: ${lat.toFixed(4)}<br/>Lon: ${lon.toFixed(4)}</div>`
+                                )
+                                .openPopup();
+                            }
+                          }}
+                          className="p-2 bg-white border rounded-lg hover:bg-blue-50 cursor-pointer transition text-sm"
+                        >
+                          <p className="font-semibold text-gray-800">{result.name}</p>
+                          <p className="text-xs text-gray-600">
+                            📍 {parseFloat(result.lat).toFixed(4)}, {parseFloat(result.lon).toFixed(4)}
+                          </p>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Footer */}
+              <div className="border-t p-4 bg-gray-50 flex gap-2 items-center justify-between">
+                <div className="text-sm">
+                  {tempLat && tempLon ? (
+                    <span className="text-green-600 font-semibold">
+                      ✓ Location selected: {parseFloat(tempLat).toFixed(4)}, {parseFloat(tempLon).toFixed(4)}
+                    </span>
+                  ) : (
+                    <span className="text-gray-500">
+                      Click on map or select from search results
+                    </span>
+                  )}
+                </div>
+                <div className="flex gap-2">
+                  <button
+                    onClick={handleConfirmMapLocation}
+                    disabled={!tempLat || !tempLon}
+                    className="bg-green-600 text-white px-6 py-2 rounded-lg hover:bg-green-700 font-semibold disabled:bg-gray-400 disabled:cursor-not-allowed"
+                  >
+                    Confirm Location
+                  </button>
+                  <button
+                    onClick={() => {
+                      if (mapInstanceRef.current) {
+                        mapInstanceRef.current.remove();
+                        mapInstanceRef.current = null;
+                      }
+                      if (markerRef.current) {
+                        markerRef.current = null;
+                      }
+                      setShowMapPicker(false);
+                      setMapSearchResults([]);
+                      setMapSearchQuery("");
+                      setTempLat("");
+                      setTempLon("");
+                    }}
+                    className="bg-gray-400 text-white px-6 py-2 rounded-lg hover:bg-gray-500 font-semibold"
+                  >
+                    Close
+                  </button>
+                </div>
               </div>
             </div>
           </div>
-        </div>
-      )}
+        )}
+      </div>
     </div>
   );
 }
 
-export default Register;
+export default Account;
+

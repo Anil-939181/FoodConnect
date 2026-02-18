@@ -6,5 +6,12 @@ const authMiddleware = require("../middleware/authMiddleware");
 router.post("/register", register);
 router.post("/login", login);
 router.get("/me", authMiddleware, getCurrentUser);
+router.post("/send-otp", require("../controllers/authController").sendOtp);
+router.post("/verify-otp", require("../controllers/authController").verifyOtp);
+router.post("/reset-password", require("../controllers/authController").resetPassword);
+router.post("/forgot-password", require("../controllers/authController").forgotPassword);
+// profile update requires auth and OTP
+router.put("/update-profile", authMiddleware, require("../controllers/authController").updateProfile);
+router.post("/forgot-password", require("../controllers/authController").forgotPassword);
 
 module.exports = router;

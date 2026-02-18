@@ -10,11 +10,14 @@ import Dashboard from "./pages/Dashboard";
 import Donate from "./pages/Donate";
 import Request from "./pages/Request";
 import Home from "./pages/Home";
+import ForgotPassword from "./pages/ForgotPassword";
+import ResetPassword from "./pages/ResetPassword";
 
 import Matches from "./pages/Matches";
 import MyActivity from "./pages/MyActivity";
 import Navbar from "./components/Navbar";
 import Loading from "./components/Loading";
+import Account from "./pages/Account";
 function App() {
   return (
     <div className="min-h-screen bg-gray-100">
@@ -77,6 +80,11 @@ function App() {
         <Route path="/matches" element={<ProtectedRoute>
               <Matches />
             </ProtectedRoute>} />
+        <Route path="/account" element={<ProtectedRoute>
+              <Account />
+            </ProtectedRoute>} />
+        <Route path="/forgot-password" element={<ForgotPassword />} />
+        <Route path="/reset-password/" element={<ResetPassword />} />
       </Routes>
       </div>
     </div>

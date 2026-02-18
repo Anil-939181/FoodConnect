@@ -72,6 +72,13 @@ function Navbar() {
     <p className="font-semibold">{name}</p>
     <p className="text-sm text-gray-600 capitalize">{role}</p>
 
+    <Link
+      to="/account"
+      className="mt-3 block w-full bg-blue-500 text-white px-3 py-1 rounded-md hover:bg-blue-600 text-center"
+      onClick={() => setProfileOpen(false)}
+    >
+      My Account
+    </Link>
     <button
       onClick={handleLogout}
       className="mt-3 w-full bg-red-500 text-white px-3 py-1 rounded-md hover:bg-red-600"
@@ -120,10 +127,10 @@ function Navbar() {
               )}
 
               <Link to="/my-activity" onClick={() => setMenuOpen(false)} className="block">My Activity</Link>
-
+              <Link to="/account" onClick={() => setMenuOpen(false)} className="block">My Account</Link>
               <button
                 onClick={handleLogout}
-                className="block text-left w-full"
+                className="block text-left w/full"
               >
                 Logout
               </button>

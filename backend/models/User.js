@@ -41,7 +41,8 @@ lonDegrees: { type: Number, default: null },
 lonMinutes: { type: Number, default: null },
 lonSeconds: { type: Number, default: null },
 
-    phone: String
+    phone: { type: String, required: true, unique: true },
+
 }, { timestamps: true });
 
 
