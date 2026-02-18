@@ -192,6 +192,35 @@ exports.updateProfile = async (req, res) => {
   }
 };
 
+// Delete account with OTP confirmation
+exports.deleteAccount = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const { otp } = req.body;
+    if (!otp) {
+      return res.status(400).json({ message: "OTP required" });
+    }
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+    const email = user.email;
+    global.otpStore = global.otpStore || {};
+    const record = global.otpStore[email];
+    if (!record || record.otp !== otp || record.purpose !== "DELETE") {
+      return res.status(400).json({ message: "Invalid OTP" });
+    }
+    if (Date.now() > record.expires) {
+      return res.status(400).json({ message: "OTP expired" });
+    }
+    await User.findByIdAndDelete(userId);
+    delete global.otpStore[email];
+    res.json({ message: "Account deleted" });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
 // Password reset
 exports.resetPassword = async (req, res) => {
   try {

@@ -30,5 +30,13 @@ router.post(
   createDonation
 );
 
+// 🔹 DELETE DONATION (only available, no requests)
+router.delete(
+  "/:id",
+  authMiddleware,
+  roleMiddleware("donor"),
+  deleteDonation
+);
+
 
 module.exports = router;

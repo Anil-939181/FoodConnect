@@ -14,6 +14,8 @@ function MyActivity() {
   const [distanceKm, setDistanceKm] = useState(null);
   const [mapModal, setMapModal] = useState(null); // { lat, lon, query }
   const [userLocation, setUserLocation] = useState(null);
+  const [deleteModal, setDeleteModal] = useState(false);
+  const [deleteTarget, setDeleteTarget] = useState(null);
 
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
@@ -135,6 +137,37 @@ function MyActivity() {
     fetchHistory(page);
   };
 
+  const handleDeleteDonation = async (donationId) => {
+    // debug / feedback
+    console.log("handleDeleteDonation called", donationId);
+    toast.info("Please confirm deletion");
+    // open modal
+    setDeleteTarget(donationId);
+    setDeleteModal(true);
+  };
+
+  const confirmDelete = async () => {
+    console.log("confirmDelete invoked", deleteTarget);
+    if (!deleteTarget) return;
+    try {
+      const res = await API.delete(`/donations/${deleteTarget}`);
+      console.log("delete response", res.data);
+      toast.success("Donation removed");
+      fetchHistory(page);
+    } catch (error) {
+      console.error("delete error", error);
+      toast.error(error.response?.data?.message || "Failed to delete");
+    } finally {
+      setDeleteModal(false);
+      setDeleteTarget(null);
+    }
+  };
+
+  const cancelDelete = () => {
+    setDeleteModal(false);
+    setDeleteTarget(null);
+  };
+
   const getStatusBadge = (status) => {
     const base = "px-3 py-1 text-xs font-semibold rounded-full ";
     const colors = {
@@ -233,6 +266,7 @@ function MyActivity() {
 
       {/* Cards */}
       {!loading && (
+        <>
         <div
           className={`transition-all duration-300 ${
             compactView
@@ -313,6 +347,15 @@ function MyActivity() {
                       </button>
                     </div>
                   ))}
+                {role === "donor" && entry.status === "available" && (!entry.requestedBy || entry.requestedBy.length === 0) && (
+                  <button
+                    onClick={() => handleDeleteDonation(entry._id)}
+                    className="text-red-500 hover:text-red-700 text-sm"
+                    title="Delete donation"
+                  >
+                    🗑️
+                  </button>
+                )}
 
                 {role === "organization" &&
                   entry.status === "reserved" && (
@@ -343,6 +386,7 @@ function MyActivity() {
             </div>
           ))}
         </div>
+        </>
       )}
 
       {/* Pagination */}
@@ -367,6 +411,30 @@ function MyActivity() {
           Next
         </button>
       </div>
+      {/* DELETE CONFIRMATION MODAL */}
+      {deleteModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 w-full max-w-md">
+            <h3 className="text-lg font-bold mb-4 text-red-600">Confirm Deletion</h3>
+            <p>This donation helps people in need. Consider completing it instead.</p>
+            <p className="mt-4">Are you sure you want to delete?</p>
+            <div className="mt-6 flex justify-end gap-3">
+              <button
+                className="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300"
+                onClick={cancelDelete}
+              >
+                Cancel
+              </button>
+              <button
+                className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
+                onClick={confirmDelete}
+              >
+                Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* DETAILS MODAL */}
       {selectedEntry && (

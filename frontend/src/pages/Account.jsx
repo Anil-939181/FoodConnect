@@ -11,6 +11,9 @@ function Account() {
   const [loading, setLoading] = useState(false);
   const [otpSent, setOtpSent] = useState(false);
   const [otp, setOtp] = useState("");
+  const [deleteOtpSent, setDeleteOtpSent] = useState(false);
+  const [deleteOtp, setDeleteOtp] = useState("");
+  const [deleting, setDeleting] = useState(false);
 
   // form states
   const [name, setName] = useState("");
@@ -78,6 +81,37 @@ function Account() {
       toast.error(error.response?.data?.message || "Failed to send OTP.");
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleSendDeleteOtp = async () => {
+    setLoading(true);
+    try {
+      await API.post("/auth/send-otp", { email: user.email, purpose: "DELETE" });
+      setDeleteOtpSent(true);
+      toast.success("OTP sent for account deletion.");
+    } catch (error) {
+      toast.error(error.response?.data?.message || "Failed to send OTP.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleDelete = async () => {
+    if (!deleteOtpSent || !deleteOtp) {
+      toast.error("Please request and enter OTP to delete account.");
+      return;
+    }
+    setDeleting(true);
+    try {
+      await API.delete("/auth/delete-account", { data: { otp: deleteOtp } });
+      toast.success("Account deleted. Logging out...");
+      localStorage.clear();
+      navigate("/");
+    } catch (error) {
+      toast.error(error.response?.data?.message || "Failed to delete account.");
+    } finally {
+      setDeleting(false);
     }
   };
 
@@ -558,6 +592,37 @@ function Account() {
                 onChange={(e) => setOtp(e.target.value)}
               />
             )}
+          </div>
+          {/* Delete account section */}
+          <div className="mt-4 border-t pt-4">
+            <h3 className="text-sm font-semibold text-red-600 mb-2">Delete Account</h3>
+            <div className="flex gap-2 items-center">
+              <button
+                type="button"
+                onClick={handleSendDeleteOtp}
+                className="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 font-semibold"
+                disabled={loading || deleteOtpSent}
+              >
+                {deleteOtpSent ? "OTP Sent" : loading ? "Sending..." : "Send Delete OTP"}
+              </button>
+              {deleteOtpSent && (
+                <input
+                  type="text"
+                  placeholder="Enter OTP"
+                  className="border rounded-lg p-2"
+                  value={deleteOtp}
+                  onChange={(e) => setDeleteOtp(e.target.value)}
+                />
+              )}
+            </div>
+            <button
+              type="button"
+              onClick={handleDelete}
+              className="mt-2 w-full bg-red-500 text-white py-2 rounded-lg font-semibold hover:bg-red-600 transition"
+              disabled={deleting}
+            >
+              {deleting ? "Deleting..." : "Delete My Account"}
+            </button>
           </div>
           <button
             type="submit"
