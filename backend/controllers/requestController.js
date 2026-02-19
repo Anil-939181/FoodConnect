@@ -1,5 +1,7 @@
 const Request = require("../models/Request");
 const Donation = require("../models/Donation");
+const User = require("../models/User");
+const { sendCustomEmail } = require("../utils/email");
 const mongoose = require("mongoose");
 
 
@@ -113,13 +115,39 @@ exports.cancelRequest = async (req, res) => {
       id => id.toString() !== req.user.id
     );
 
-    // If this org was accepted, reopen donation
+    // If this org was accepted, clear acceptedBy
     if (donation.acceptedBy?.toString() === req.user.id) {
-      donation.status = "available";
       donation.acceptedBy = null;
     }
 
+    // Recalculate status: if there are remaining requests -> 'requested', else 'available'
+    if (donation.requestedBy && donation.requestedBy.length > 0) {
+      donation.status = "requested";
+    } else {
+      donation.status = "available";
+    }
+
     await donation.save();
+
+    // notify donor about cancellation
+    try {
+      const donorUser = await User.findById(donation.donor).select("name email");
+      const orgUser = await User.findById(req.user.id).select("name email");
+      if (donorUser?.email) {
+        const subject = `Request cancelled`;
+        const itemsHtml = (donation.items || []).map(i => `<li>${i.name} — ${i.quantity} ${i.unit||""}</li>`).join("");
+        const html = `
+          <p>Hi ${donorUser.name || "donor"},</p>
+          <p>The request from <b>${orgUser?.name || "an organization"}</b> has been cancelled.</p>
+          <p><b>Donation details:</b></p>
+          <ul>${itemsHtml}</ul>
+          <p>Meal type: <b>${donation.mealType || "N/A"}</b></p>
+        `;
+        await sendCustomEmail({ to: donorUser.email, subject, html });
+      }
+    } catch (e) {
+      console.error("Error sending cancellation email:", e.message);
+    }
 
     res.json({ message: "Request cancelled" });
 

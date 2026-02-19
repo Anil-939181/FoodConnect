@@ -30,7 +30,7 @@ function Register() {
   const [lonDegrees, setLonDegrees] = useState("");
   const [lonMinutes, setLonMinutes] = useState("");
   const [lonSeconds, setLonSeconds] = useState("");
-  const [locationFormat, setLocationFormat] = useState("decimal"); // "decimal" or "dms"
+  
   const mapRef = useRef(null);
   const mapInstanceRef = useRef(null);
   const markerRef = useRef(null);
@@ -257,7 +257,7 @@ function Register() {
     e.preventDefault();
 
     if (!latitude || !longitude) {
-      toast.error("Please provide location (use current location or enter manually)");
+      toast.error("Please select your location using the map picker");
       return;
     }
 
@@ -392,178 +392,21 @@ function Register() {
           {/* Location Section */}
           <div className="border-t-2 pt-4 mt-4">
             <div className="flex items-center justify-between mb-3">
-              <h3 className="text-sm font-semibold text-gray-700">
-                Location (Required)
-              </h3>
+              <h3 className="text-sm font-semibold text-gray-700">Location (Required)</h3>
               <div className="flex gap-2">
                 <button
                   type="button"
-                  onClick={() => setLocationFormat("decimal")}
-                  className={`px-3 py-1 rounded text-xs font-semibold ${
-                    locationFormat === "decimal"
-                      ? "bg-blue-600 text-white"
-                      : "bg-gray-200 text-gray-700"
-                  }`}
+                  onClick={() => setShowMapPicker(true)}
+                  className="px-3 py-1 rounded text-xs font-semibold bg-purple-600 text-white"
                 >
-                  Decimal
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setLocationFormat("dms")}
-                  className={`px-3 py-1 rounded text-xs font-semibold ${
-                    locationFormat === "dms"
-                      ? "bg-blue-600 text-white"
-                      : "bg-gray-200 text-gray-700"
-                  }`}
-                >
-                  DMS
+                  🗺️ Pick from Map
                 </button>
               </div>
             </div>
 
-            <div className="flex gap-2 mb-3">
-              <button
-                type="button"
-                onClick={handleGetCurrentLocation}
-                disabled={locationLoading}
-                className="flex-1 bg-blue-600 text-white py-2 rounded-lg font-semibold hover:bg-blue-700 transition disabled:bg-gray-400 text-sm"
-              >
-                {locationLoading ? "Getting..." : "📍 Current Location"}
-              </button>
-              <button
-                type="button"
-                onClick={() => setShowMapPicker(true)}
-                className="flex-1 bg-purple-600 text-white py-2 rounded-lg font-semibold hover:bg-purple-700 transition text-sm"
-              >
-                🗺️ Pick from Map
-              </button>
+            <div className="mb-3">
+              <p className="text-xs text-gray-500">Select your location from the map.</p>
             </div>
-
-            {/* DECIMAL FORMAT */}
-            {locationFormat === "decimal" && (
-              <div className="space-y-3">
-                <p className="text-xs text-gray-500">Enter decimal degrees</p>
-                <div className="grid grid-cols-2 gap-3">
-                  <input
-                    type="text"
-                    placeholder="Latitude (e.g., 13.1939)"
-                    className="border rounded-lg p-2 text-sm"
-                    value={latitude}
-                    onChange={(e) => {
-                      setLatitude(e.target.value);
-                      if (e.target.value) handleDecimalChange();
-                    }}
-                  />
-                  <input
-                    type="text"
-                    placeholder="Longitude (e.g., 79.5941)"
-                    className="border rounded-lg p-2 text-sm"
-                    value={longitude}
-                    onChange={(e) => {
-                      setLongitude(e.target.value);
-                      if (e.target.value) handleDecimalChange();
-                    }}
-                  />
-                </div>
-              </div>
-            )}
-
-            {/* DMS FORMAT */}
-            {locationFormat === "dms" && (
-              <div className="space-y-3">
-                <p className="text-xs text-gray-500">Degrees, Minutes, Seconds</p>
-                
-                <div>
-                  <label className="block text-xs font-semibold text-gray-700 mb-2">
-                    Latitude
-                  </label>
-                  <div className="grid grid-cols-3 gap-2">
-                    <input
-                      type="number"
-                      placeholder="Degrees"
-                      className="border rounded-lg p-2 text-sm"
-                      value={latDegrees}
-                      onChange={(e) => {
-                        setLatDegrees(e.target.value);
-                        if (latMinutes && latSeconds) handleDMSChange();
-                      }}
-                      min="-90"
-                      max="90"
-                    />
-                    <input
-                      type="number"
-                      placeholder="Minutes"
-                      className="border rounded-lg p-2 text-sm"
-                      value={latMinutes}
-                      onChange={(e) => {
-                        setLatMinutes(e.target.value);
-                        if (latDegrees && latSeconds) handleDMSChange();
-                      }}
-                      min="0"
-                      max="59"
-                    />
-                    <input
-                      type="number"
-                      placeholder="Seconds"
-                      step="0.01"
-                      className="border rounded-lg p-2 text-sm"
-                      value={latSeconds}
-                      onChange={(e) => {
-                        setLatSeconds(e.target.value);
-                        if (latDegrees && latMinutes) handleDMSChange();
-                      }}
-                      min="0"
-                      max="59.99"
-                    />
-                  </div>
-                </div>
-
-                <div>
-                  <label className="block text-xs font-semibold text-gray-700 mb-2">
-                    Longitude
-                  </label>
-                  <div className="grid grid-cols-3 gap-2">
-                    <input
-                      type="number"
-                      placeholder="Degrees"
-                      className="border rounded-lg p-2 text-sm"
-                      value={lonDegrees}
-                      onChange={(e) => {
-                        setLonDegrees(e.target.value);
-                        if (lonMinutes && lonSeconds) handleDMSChange();
-                      }}
-                      min="-180"
-                      max="180"
-                    />
-                    <input
-                      type="number"
-                      placeholder="Minutes"
-                      className="border rounded-lg p-2 text-sm"
-                      value={lonMinutes}
-                      onChange={(e) => {
-                        setLonMinutes(e.target.value);
-                        if (lonDegrees && lonSeconds) handleDMSChange();
-                      }}
-                      min="0"
-                      max="59"
-                    />
-                    <input
-                      type="number"
-                      placeholder="Seconds"
-                      step="0.01"
-                      className="border rounded-lg p-2 text-sm"
-                      value={lonSeconds}
-                      onChange={(e) => {
-                        setLonSeconds(e.target.value);
-                        if (lonDegrees && lonMinutes) handleDMSChange();
-                      }}
-                      min="0"
-                      max="59.99"
-                    />
-                  </div>
-                </div>
-              </div>
-            )}
 
             {/* Location Confirmation */}
             {latitude && longitude && (
