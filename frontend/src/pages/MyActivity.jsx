@@ -1,10 +1,12 @@
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import API from "../services/api";
 import { toast } from "react-toastify";
 import { haversineDistance } from "../utils/distance";
 
 function MyActivity() {
   const role = localStorage.getItem("role");
+  const navigate = useNavigate();
 
   const [data, setData] = useState([]);
   const [activeTab, setActiveTab] = useState("ongoing");
@@ -14,6 +16,7 @@ function MyActivity() {
   const [distanceKm, setDistanceKm] = useState(null);
   const [mapModal, setMapModal] = useState(null); // { lat, lon, query }
   const [userLocation, setUserLocation] = useState(null);
+
   const [deleteModal, setDeleteModal] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState(null);
 
@@ -116,46 +119,18 @@ function MyActivity() {
     }
   };
 
-  const handleComplete = async (requestId) => {
-    await API.post("/match/complete", { requestId });
-    toast.success("Marked as completed");
-    fetchHistory(page);
-  };
-
-  const handleCancel = async (requestId) => {
-    await API.post("/requests/cancel", { requestId });
-    toast.success("Request cancelled");
-    fetchHistory(page);
-  };
-
-  const handleApprove = async (donationId, orgId) => {
-    await API.post("/match/approve", {
-      donationId,
-      organizationId: orgId
-    });
-    toast.success("Donation approved");
-    fetchHistory(page);
-  };
-
   const handleDeleteDonation = async (donationId) => {
-    // debug / feedback
-    console.log("handleDeleteDonation called", donationId);
-    toast.info("Please confirm deletion");
-    // open modal
     setDeleteTarget(donationId);
     setDeleteModal(true);
   };
 
   const confirmDelete = async () => {
-    console.log("confirmDelete invoked", deleteTarget);
     if (!deleteTarget) return;
     try {
-      const res = await API.delete(`/donations/${deleteTarget}`);
-      console.log("delete response", res.data);
+      await API.delete(`/donations/${deleteTarget}`);
       toast.success("Donation removed");
       fetchHistory(page);
     } catch (error) {
-      console.error("delete error", error);
       toast.error(error.response?.data?.message || "Failed to delete");
     } finally {
       setDeleteModal(false);
@@ -166,6 +141,34 @@ function MyActivity() {
   const cancelDelete = () => {
     setDeleteModal(false);
     setDeleteTarget(null);
+  };
+
+  const handleComplete = async (requestId) => {
+    await API.post("/match/complete", { requestId });
+    toast.success("Marked as completed");
+    fetchHistory(page);
+  };
+
+  const handleCancel = async (requestId) => {
+    await API.post("/requests/cancel", { requestId });
+    toast.success("Request cancelled");
+    fetchHistory(page);
+    if (typeof window !== 'undefined' && window.refreshNotif) {
+      window.refreshNotif();
+    }
+  };
+
+  const handleApprove = async (donationId, orgId) => {
+    await API.post("/match/approve", {
+      donationId,
+      organizationId: orgId
+    });
+    toast.success("Donation approved");
+    fetchHistory(page);
+    // refresh notification count
+    if (typeof window !== 'undefined' && window.refreshNotif) {
+      window.refreshNotif();
+    }
   };
 
   const getStatusBadge = (status) => {
@@ -266,7 +269,6 @@ function MyActivity() {
 
       {/* Cards */}
       {!loading && (
-        <>
         <div
           className={`transition-all duration-300 ${
             compactView
@@ -347,16 +349,26 @@ function MyActivity() {
                       </button>
                     </div>
                   ))}
-                {role === "donor" && entry.status === "available" && (!entry.requestedBy || entry.requestedBy.length === 0) && (
-                  <button
-                    onClick={() => handleDeleteDonation(entry._id)}
-                    className="text-red-500 hover:text-red-700 text-sm"
-                    title="Delete donation"
-                  >
-                    🗑️
-                  </button>
-                )}
 
+
+                  {role === "donor" && entry.status === "available" && (!entry.requestedBy || entry.requestedBy.length === 0) && (
+                    <>
+                      <button
+                        onClick={() => navigate(`/donations/${entry._id}/edit`)}
+                        className="text-blue-500 hover:text-blue-700 text-sm mr-2"
+                        title="Edit donation"
+                      >
+                        ✏️
+                      </button>
+                      <button
+                        onClick={() => handleDeleteDonation(entry._id)}
+                        className="text-red-500 hover:text-red-700 text-sm"
+                        title="Delete donation"
+                      >
+                        🗑️
+                      </button>
+                    </>
+                  )}
                 {role === "organization" &&
                   entry.status === "reserved" && (
                     <>
@@ -386,7 +398,6 @@ function MyActivity() {
             </div>
           ))}
         </div>
-        </>
       )}
 
       {/* Pagination */}
@@ -419,22 +430,13 @@ function MyActivity() {
             <p>This donation helps people in need. Consider completing it instead.</p>
             <p className="mt-4">Are you sure you want to delete?</p>
             <div className="mt-6 flex justify-end gap-3">
-              <button
-                className="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300"
-                onClick={cancelDelete}
-              >
-                Cancel
-              </button>
-              <button
-                className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
-                onClick={confirmDelete}
-              >
-                Delete
-              </button>
+              <button className="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300" onClick={cancelDelete}>Cancel</button>
+              <button className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700" onClick={confirmDelete}>Delete</button>
             </div>
           </div>
         </div>
       )}
+
 
       {/* DETAILS MODAL */}
       {selectedEntry && (
@@ -444,6 +446,7 @@ function MyActivity() {
             <button
               onClick={() => setSelectedEntry(null)}
               className="absolute top-4 right-4 text-gray-500 hover:text-red-500 text-xl"
+      
             >
               ✕
             </button>
@@ -551,27 +554,12 @@ function MyActivity() {
                 <div className="mt-3">
                   <button
                     onClick={() => {
-                        
-                      const donor = selectedEntry.matchedDonation?.donor;
-if (donor?.latitude && donor?.longitude) {
-  setMapModal({
-    lat: donor.latitude,
-    lon: donor.longitude,
-    latDegrees: donor.latDegrees,
-    latMinutes: donor.latMinutes,
-    latSeconds: donor.latSeconds,
-    lonDegrees: donor.lonDegrees,
-    lonMinutes: donor.lonMinutes,
-    lonSeconds: donor.lonSeconds,
-    name: donor.name,
-    city: donor.city
-  });
-} else {
-  setMapModal({
-    query: `${donor?.name || ""} ${donor?.city || ""}`.trim()
-  });
-}
-
+                      const coords = selectedEntry.matchedDonation.location?.coordinates;
+                      if (coords && coords.length >= 2) {
+                        setMapModal({ lat: coords[1], lon: coords[0] });
+                      } else {
+                        setMapModal({ query: selectedEntry.matchedDonation.donor?.city || '' });
+                      }
                     }}
                     className="text-sm text-blue-600 hover:underline"
                   >
@@ -593,119 +581,77 @@ if (donor?.latitude && donor?.longitude) {
       )}
 
       {/* MAP MODAL */}
-      {/* MAP MODAL */}
-{mapModal && (
-  <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
-    <div className="bg-white rounded-xl p-6 w-full max-w-md max-h-[90vh] overflow-y-auto shadow-2xl relative">
+      {mapModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-xl p-4 w-full max-w-3xl max-h-[90vh] overflow-y-auto">
+            <div className="flex justify-between items-center mb-4">
+              <div>
+                <h4 className="font-semibold text-lg">Location Details</h4>
+                {mapModal.name && (
+                  <p className="text-sm text-gray-600">{mapModal.name} {mapModal.city ? `• ${mapModal.city}` : ''}</p>
+                )}
+              </div>
+              <button onClick={() => setMapModal(null)} className="text-gray-500 text-2xl">×</button>
+            </div>
 
-      {/* Header */}
-      <div className="flex justify-between items-center mb-4">
-        <div>
-          <h3 className="font-bold text-lg">Location Details</h3>
-          {mapModal.name && (
-            <p className="text-sm text-gray-600">
-              {mapModal.name} {mapModal.city ? `• ${mapModal.city}` : ''}
-            </p>
-          )}
+            {mapModal.lat && mapModal.lon ? (
+              <>
+                {/* Location Coordinates Display */}
+                <div className="mb-4 p-3 bg-gray-50 rounded-lg border border-gray-200">
+                  <p className="text-sm font-semibold text-gray-700 mb-2">Coordinates:</p>
+                  <p className="text-sm text-gray-800">
+                    <span className="font-medium">Decimal:</span> {mapModal.lat.toFixed(6)}, {mapModal.lon.toFixed(6)}
+                  </p>
+                  {mapModal.latDegrees && mapModal.latMinutes && mapModal.latSeconds && mapModal.lonDegrees && mapModal.lonMinutes && mapModal.lonSeconds && (
+                    <p className="text-sm text-gray-800 mt-1">
+                      <span className="font-medium">DMS:</span> {mapModal.latDegrees}° {mapModal.latMinutes}' {mapModal.latSeconds?.toFixed(2)}" , {mapModal.lonDegrees}° {mapModal.lonMinutes}' {mapModal.lonSeconds?.toFixed(2)}"
+                    </p>
+                  )}
+                </div>
+
+                {/* Map */}
+                <div className="w-full h-72 mb-3 rounded-lg overflow-hidden">
+                  <iframe
+                    width="100%"
+                    height="100%"
+                    src={`https://maps.google.com/maps?q=${mapModal.lat},${mapModal.lon}&z=15&output=embed`}
+                    title="map"
+                  />
+                </div>
+
+                {/* Google Maps Link */}
+                <a
+                  className="inline-block px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm font-semibold"
+                  href={`https://www.google.com/maps/search/?api=1&query=${mapModal.lat},${mapModal.lon}`}
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                  📍 Open in Google Maps
+                </a>
+              </>
+            ) : (
+              <>
+                <div className="w-full h-72 mb-3 rounded-lg overflow-hidden">
+                  <iframe
+                    width="100%"
+                    height="100%"
+                    src={`https://maps.google.com/maps?q=${encodeURIComponent(mapModal.query)}&z=12&output=embed`}
+                    title="map"
+                  />
+                </div>
+                <a
+                  className="inline-block px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm font-semibold"
+                  href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(mapModal.query)}`}
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                  📍 Open in Google Maps
+                </a>
+              </>
+            )}
+          </div>
         </div>
-
-        <button
-          onClick={() => setMapModal(null)}
-          className="text-gray-500 text-2xl hover:text-gray-700 transition"
-        >
-          ×
-        </button>
-      </div>
-
-      {/* If Coordinates Available */}
-      {mapModal.lat && mapModal.lon ? (
-        <>
-          {/* Coordinates Box */}
-          <div className="mb-4 p-3 bg-gray-50 rounded-lg border border-gray-200">
-            <p className="text-sm font-semibold text-gray-700 mb-2">
-              Coordinates:
-            </p>
-
-            <p className="text-sm text-gray-800">
-              <span className="font-medium">Decimal:</span>{" "}
-              {Number(mapModal.lat).toFixed(6)},{" "}
-              {Number(mapModal.lon).toFixed(6)}
-            </p>
-
-            {mapModal.latDegrees &&
-              mapModal.latMinutes &&
-              mapModal.latSeconds &&
-              mapModal.lonDegrees &&
-              mapModal.lonMinutes &&
-              mapModal.lonSeconds && (
-                <p className="text-sm text-gray-800 mt-1">
-                  <span className="font-medium">DMS:</span>{" "}
-                  {mapModal.latDegrees}° {mapModal.latMinutes}'{" "}
-                  {Number(mapModal.latSeconds).toFixed(2)}" ,{" "}
-                  {mapModal.lonDegrees}° {mapModal.lonMinutes}'{" "}
-                  {Number(mapModal.lonSeconds).toFixed(2)}"
-                </p>
-              )}
-          </div>
-
-          {/* Map Preview */}
-          <div className="w-full h-64 mb-3 rounded-lg overflow-hidden">
-            <iframe
-              width="100%"
-              height="100%"
-              src={`https://maps.google.com/maps?q=${mapModal.lat},${mapModal.lon}&z=15&output=embed`}
-              title="map"
-            ></iframe>
-          </div>
-
-          {/* Google Maps Button */}
-          <a
-            className="inline-block w-full text-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-semibold text-sm transition"
-            href={`https://www.google.com/maps/search/?api=1&query=${mapModal.lat},${mapModal.lon}`}
-            target="_blank"
-            rel="noreferrer"
-          >
-            📍 Open in Google Maps
-          </a>
-        </>
-      ) : (
-        <>
-          {/* Fallback using address query */}
-          <div className="w-full h-64 mb-3 rounded-lg overflow-hidden">
-            <iframe
-              width="100%"
-              height="100%"
-              src={`https://maps.google.com/maps?q=${encodeURIComponent(
-                mapModal.query || mapModal.city || ""
-              )}&z=12&output=embed`}
-              title="map"
-            ></iframe>
-          </div>
-
-          <a
-            className="inline-block w-full text-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-semibold text-sm transition"
-            href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
-              mapModal.query || mapModal.city || ""
-            )}`}
-            target="_blank"
-            rel="noreferrer"
-          >
-            📍 Open in Google Maps
-          </a>
-        </>
       )}
-
-      {/* Close Button */}
-      <button
-        onClick={() => setMapModal(null)}
-        className="mt-4 w-full bg-red-500 text-white py-2 rounded-lg hover:bg-red-600 transition"
-      >
-        Close
-      </button>
-    </div>
-  </div>
-)}
-
 
     </div>
   );

@@ -3,7 +3,6 @@ import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import API from "../services/api";
 import { decimalToDMS, dmsToDecimal } from "../utils/coordinates";
-import { EyeOpen, EyeClosed } from "../components/EyeIcons";
 
 function Register() {
   const navigate = useNavigate();
@@ -11,11 +10,6 @@ function Register() {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
-  const [phone, setPhone] = useState("");
-  const [otpSent, setOtpSent] = useState(false);
-  const [otp, setOtp] = useState("");
-  const [loading, setLoading] = useState(false);
 
   const [state, setState] = useState("");
   const [district, setDistrict] = useState("");
@@ -267,23 +261,6 @@ function Register() {
       return;
     }
 
-    if (password !== confirmPassword) {
-      toast.error("Passwords do not match.");
-      return;
-    }
-    // Password strength validation (min 8 chars, 1 uppercase, 1 number)
-    const strong = /^(?=.*[A-Z])(?=.*\d).{8,}$/;
-    if (!strong.test(password)) {
-      toast.error("Password must be at least 8 characters, include an uppercase letter and a number.");
-      return;
-    }
-    if (!otpSent) {
-      toast.error("Please verify your email with OTP.");
-      return;
-    }
-    const verified = await handleVerifyOtp();
-    if (!verified) return;
-
     try {
       await API.post("/auth/register", {
         name,
@@ -313,45 +290,6 @@ function Register() {
       toast.error(errorMessage);
     }
   };
-
-  const handleSendOtp = async (e) => {
-    e.preventDefault();
-    if (!email) {
-      toast.error("Please enter your email.");
-      return;
-    }
-    setLoading(true);
-    try {
-      await API.post("/auth/send-otp", { email, purpose: "VERIFY" });
-      setOtpSent(true);
-      toast.success("OTP sent to your email.");
-    } catch (error) {
-      toast.error(error.response?.data?.message || "Failed to send OTP.");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleVerifyOtp = async () => {
-    if (!otp) {
-      toast.error("Please enter the OTP.");
-      return false;
-    }
-    setLoading(true);
-    try {
-      await API.post("/auth/verify-otp", { email, otp, purpose: "VERIFY" });
-      toast.success("Email verified!");
-      return true;
-    } catch (error) {
-      toast.error(error.response?.data?.message || "Invalid OTP.");
-      return false;
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const [showPassword, setShowPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-100">
@@ -404,61 +342,13 @@ function Register() {
           />
 
           <input
-            type={showPassword ? "text" : "password"}
+            type="password"
             placeholder="Password"
             required
-            className="w-full border rounded-lg p-2 pr-10"
+            className="w-full border rounded-lg p-2"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
           />
-          <button
-            type="button"
-            className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-500"
-            tabIndex={-1}
-            onClick={() => setShowPassword((v) => !v)}
-            style={{marginLeft: '-2.5rem'}}
-          >
-            {showPassword ? <EyeOpen /> : <EyeClosed />}
-          </button>
-
-          <input
-            type={showConfirmPassword ? "text" : "password"}
-            placeholder="Confirm Password"
-            required
-            className="w-full border rounded-lg p-2 pr-10"
-            value={confirmPassword}
-            onChange={(e) => setConfirmPassword(e.target.value)}
-          />
-          <button
-            type="button"
-            className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-500"
-            tabIndex={-1}
-            onClick={() => setShowConfirmPassword((v) => !v)}
-            style={{marginLeft: '-2.5rem'}}
-          >
-            {showConfirmPassword ? <EyeOpen /> : <EyeClosed />}
-          </button>
-
-          {/* Email OTP Section */}
-          <div className="flex gap-2 items-center">
-            <button
-              type="button"
-              onClick={handleSendOtp}
-              className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 font-semibold"
-              disabled={loading || otpSent}
-            >
-              {otpSent ? "OTP Sent" : loading ? "Sending..." : "Send OTP"}
-            </button>
-            {otpSent && (
-              <input
-                type="text"
-                placeholder="Enter OTP"
-                className="border rounded-lg p-2"
-                value={otp}
-                onChange={(e) => setOtp(e.target.value)}
-              />
-            )}
-          </div>
 
           {/* Address Fields */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -689,17 +579,6 @@ function Register() {
               </div>
             )}
           </div>
-
-          <input
-            type="text"
-            placeholder="Phone Number"
-            required
-            className="w-full border rounded-lg p-2"
-            value={phone}
-            onChange={(e) => setPhone(e.target.value)}
-            pattern="[0-9]{10,15}"
-            title="Enter a valid phone number"
-          />
 
           <button
             type="submit"

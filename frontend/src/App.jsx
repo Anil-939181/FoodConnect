@@ -15,9 +15,10 @@ import ResetPassword from "./pages/ResetPassword";
 
 import Matches from "./pages/Matches";
 import MyActivity from "./pages/MyActivity";
+import EditDonation from "./pages/EditDonation";
+import Account from "./pages/Account";
 import Navbar from "./components/Navbar";
 import Loading from "./components/Loading";
-import Account from "./pages/Account";
 function App() {
   return (
     <div className="min-h-screen bg-gray-100">
@@ -41,6 +42,9 @@ function App() {
         <Route path="/login" element={<Login />} />
 
         <Route path="/register" element={<Register />} />
+
+        <Route path="/forgot-password" element={<ForgotPassword />} />
+        <Route path="/reset-password" element={<ResetPassword />} />
 
         <Route
           path="/dashboard"
@@ -77,14 +81,25 @@ function App() {
             </ProtectedRoute>
           }
         />
+        <Route
+          path="/account"
+          element={
+            <ProtectedRoute>
+              <Account />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/donations/:id/edit"
+          element={
+            <ProtectedRoute>
+              <EditDonation />
+            </ProtectedRoute>
+          }
+        />
         <Route path="/matches" element={<ProtectedRoute>
               <Matches />
             </ProtectedRoute>} />
-        <Route path="/account" element={<ProtectedRoute>
-              <Account />
-            </ProtectedRoute>} />
-        <Route path="/forgot-password" element={<ForgotPassword />} />
-        <Route path="/reset-password/" element={<ResetPassword />} />
       </Routes>
       </div>
     </div>

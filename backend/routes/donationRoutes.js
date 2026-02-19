@@ -10,7 +10,8 @@ const {
   updateDonation,
   deleteDonation,
   getMyActiveDonations,
-  getDonationHistory
+  getDonationHistory,
+  getDonationById
 } = require("../controllers/donationController");
 
 // 🔹 ACTIVE DONATIONS
@@ -21,6 +22,13 @@ router.get(
   getMyActiveDonations
 );
 
+// 🔹 COMPLETED MY ACTIVITY
+router.get(
+  "/my-activity",
+  authMiddleware,
+  roleMiddleware("donor"),
+  getDonationHistory
+);
 
 // 🔹 CREATE DONATION
 router.post(
@@ -30,13 +38,11 @@ router.post(
   createDonation
 );
 
-// 🔹 DELETE DONATION (only available, no requests)
-router.delete(
-  "/:id",
-  authMiddleware,
-  roleMiddleware("donor"),
-  deleteDonation
-);
-
+// 🔹 BASIC CRUD
+router.get("/my", authMiddleware, getMyDonations);
+// fetch one donation for editing
+router.get("/:id", authMiddleware, getDonationById);
+router.put("/:id", authMiddleware, updateDonation);
+router.delete("/:id", authMiddleware, deleteDonation);
 
 module.exports = router;

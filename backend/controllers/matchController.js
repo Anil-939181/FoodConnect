@@ -1,6 +1,5 @@
 const Donation = require("../models/Donation");
 const Request = require("../models/Request");
-const { sendCustomEmail } = require("../utils/email");
 
 
 // 🔹 SEARCH MATCHES (NO DB CREATION)
@@ -42,59 +41,52 @@ exports.searchMatches = async (req, res) => {
       baseQuery.mealType = mealType;
     }
 
-    // 🔥 Get donations and their donors, then compute distance in app
-    const donations = await Donation.find(baseQuery)
-      .populate("donor", "name city latitude longitude")
-      .populate("requestedBy", "name")
-      .populate("acceptedBy", "name");
-
-    // 🔥 Filter by radius using user (donor) location, not donation location
-    const filtered = donations.filter(donation => {
-      if (!donation.donor || donation.donor.latitude === null || donation.donor.longitude === null) {
-        return false;
+    const donations = await Donation.aggregate([
+      {
+        $geoNear: {
+          near: {
+            type: "Point",
+            coordinates: [Number(longitude), Number(latitude)]
+          },
+          distanceField: "distance",
+          maxDistance: radius * 1000,
+          spherical: true,
+          query: baseQuery
+        }
+      },
+      {
+        $lookup: {
+          from: "users",
+          localField: "donor",
+          foreignField: "_id",
+          as: "donor"
+        }
+      },
+      { $unwind: "$donor" },
+      {
+        $project: {
+          mealType: 1,
+          items: 1,
+          expiryTime: 1,
+          status: 1,
+          requestedBy: 1,
+          acceptedBy: 1,
+          location: 1,
+          donor: {
+            name: "$donor.name",
+            city: "$donor.city"
+          },
+          distance: { $divide: ["$distance", 1000] }
+        }
       }
+    ]);
 
-      // Haversine distance calculation (in meters)
-      const toRad = (deg) => (deg * Math.PI) / 180;
-      const R = 6371000; // Earth's radius in meters
-      const dLat = toRad(donation.donor.latitude - latitude);
-      const dLon = toRad(donation.donor.longitude - longitude);
-      const a =
-        Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-        Math.cos(toRad(latitude)) * Math.cos(toRad(donation.donor.latitude)) *
-        Math.sin(dLon / 2) * Math.sin(dLon / 2);
-      const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-      const distanceMeters = R * c;
-      const distanceKm = distanceMeters / 1000;
-
-      return distanceKm <= radius;
-    });
-
-    // 🔥 Add distance to each result
-    const withDistance = filtered.map(donation => {
-      const toRad = (deg) => (deg * Math.PI) / 180;
-      const R = 6371000;
-      const dLat = toRad(donation.donor.latitude - latitude);
-      const dLon = toRad(donation.donor.longitude - longitude);
-      const a =
-        Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-        Math.cos(toRad(latitude)) * Math.cos(toRad(donation.donor.latitude)) *
-        Math.sin(dLon / 2) * Math.sin(dLon / 2);
-      const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-      const distanceKm = (R * c) / 1000;
-
-      return {
-        ...donation.toObject(),
-        distance: distanceKm
-      };
-    });
-
-    let finalResults = withDistance;
+    let finalResults = donations;
 
     // 🔥 Apply scoring only if items provided
     if (requestedItems && requestedItems.length > 0) {
 
-      const scoredResults = withDistance.map(donation => {
+      const scoredResults = donations.map(donation => {
 
         let score = 0;
 
@@ -151,6 +143,9 @@ exports.searchMatches = async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 };
+
+
+
 
 
 
@@ -251,24 +246,6 @@ exports.approveDonation = async (req, res) => {
     donation.acceptedBy = organizationId;
     await donation.save();
 
-    // After approval, send org details to donor
-    const orgUser = await require("../models/User").findById(organizationId);
-    const donorUser = await require("../models/User").findById(donation.donor);
-    if (orgUser && donorUser) {
-      await sendCustomEmail({
-        to: donorUser.email,
-        subject: `Organization Approved: ${orgUser.name}`,
-        html: `<h3>You approved an organization for your donation.</h3>
-          <p>Organization details:</p>
-          <ul>
-            <li><b>Name:</b> ${orgUser.name}</li>
-            <li><b>Email:</b> ${orgUser.email}</li>
-            <li><b>Phone:</b> ${orgUser.phone || "N/A"}</li>
-          </ul>
-          <p>You can now contact the organization directly.</p>`
-      });
-    }
-
     res.json({ message: "Donation reserved successfully" });
 
   } catch (error) {
@@ -315,24 +292,6 @@ exports.completeMatch = async (req, res) => {
       },
       { status: "rejected" }
     );
-
-    // After completion, send donor details to organization
-    const donorUser = await require("../models/User").findById(donation.donor);
-    const orgUser = await require("../models/User").findById(request.requester);
-    if (donorUser && orgUser) {
-      await sendCustomEmail({
-        to: orgUser.email,
-        subject: `Donation Completed: Donor Details`,
-        html: `<h3>The donation you accepted has been completed.</h3>
-          <p>Donor contact details:</p>
-          <ul>
-            <li><b>Name:</b> ${donorUser.name}</li>
-            <li><b>Email:</b> ${donorUser.email}</li>
-            <li><b>Phone:</b> ${donorUser.phone || "N/A"}</li>
-          </ul>
-          <p>You can now contact the donor directly if needed.</p>`
-      });
-    }
 
     res.json({ message: "Transaction completed" });
 
