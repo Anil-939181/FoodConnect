@@ -122,7 +122,8 @@ function Register() {
         
         // Initialize map centered on India
         const map = L.map(mapRef.current, {
-          attributionControl: true
+          attributionControl: true,
+          scrollWheelZoom: false // disable by default to allow page scroll
         }).setView([20.5937, 78.9629], 5);
         
         L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
@@ -130,6 +131,20 @@ function Register() {
           minZoom: 2,
           attribution: "© OpenStreetMap contributors"
         }).addTo(map);
+
+        // require ctrl key to zoom
+        const container = map.getContainer();
+        container.addEventListener("wheel", (ev) => {
+          ev.preventDefault();
+          if (ev.ctrlKey) {
+            map.scrollWheelZoom.enable();
+          } else {
+            map.scrollWheelZoom.disable();
+            // pan map vertically with wheel
+            const factor = 0.5; // adjust sensitivity
+            map.panBy([0, ev.deltaY * factor], { animate: false });
+          }
+        });
 
         mapInstanceRef.current = map;
 

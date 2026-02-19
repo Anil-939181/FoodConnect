@@ -184,12 +184,24 @@ function Account() {
       }
       try {
         const L = window.L;
-        const map = L.map(mapRef.current, { attributionControl: true }).setView([20.5937, 78.9629], 5);
+        const map = L.map(mapRef.current, { attributionControl: true, scrollWheelZoom: false }).setView([20.5937, 78.9629], 5);
         L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
           maxZoom: 19,
           minZoom: 2,
           attribution: "© OpenStreetMap contributors"
         }).addTo(map);
+        // ctrl+scroll to zoom
+        const container = map.getContainer();
+        container.addEventListener("wheel", (ev) => {
+          ev.preventDefault();
+          if (ev.ctrlKey) {
+            map.scrollWheelZoom.enable();
+          } else {
+            map.scrollWheelZoom.disable();
+            const factor = 0.5;
+            map.panBy([0, ev.deltaY * factor], { animate: false });
+          }
+        });
         mapInstanceRef.current = map;
         map.on("click", (e) => {
           const { lat, lng } = e.latlng;
