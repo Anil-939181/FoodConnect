@@ -47,6 +47,25 @@ exports.register = async (req, res) => {
     }
 };
 
+// Check if email or phone already registered
+exports.checkAvailability = async (req, res) => {
+  try {
+    const { email, phone } = req.body;
+    let exists = false;
+    if (email) {
+      const userByEmail = await User.findOne({ email });
+      if (userByEmail) exists = true;
+    }
+    if (!exists && phone) {
+      const userByPhone = await User.findOne({ phone });
+      if (userByPhone) exists = true;
+    }
+    res.json({ exists });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
 // Login
 exports.login = async (req, res) => {
     try {

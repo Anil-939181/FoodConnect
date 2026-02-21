@@ -141,6 +141,10 @@ function Account() {
     );
   };
 
+  useEffect(() => {
+    document.body.style.overflow = showMapPicker ? "hidden" : "";
+  }, [showMapPicker]);
+
   const handleDMSChange = () => {
     if (latDegrees && latMinutes && latSeconds && lonDegrees && lonMinutes && lonSeconds) {
       const lat = dmsToDecimal(
@@ -192,8 +196,12 @@ function Account() {
         }).addTo(map);
         // ctrl+scroll to zoom
         const container = map.getContainer();
+        // prevent default scrolling when interacting with the map
+        L.DomEvent.disableScrollPropagation(container);
+        L.DomEvent.disableClickPropagation(container);
         container.addEventListener("wheel", (ev) => {
           ev.preventDefault();
+          ev.stopPropagation();
           if (ev.ctrlKey) {
             map.scrollWheelZoom.enable();
           } else {
@@ -201,7 +209,7 @@ function Account() {
             const factor = 0.5;
             map.panBy([0, ev.deltaY * factor], { animate: false });
           }
-        });
+        }, { passive: false });
         mapInstanceRef.current = map;
         map.on("click", (e) => {
           const { lat, lng } = e.latlng;
@@ -412,6 +420,7 @@ function Account() {
 
             <div className="mb-3">
               <p className="text-xs text-gray-500">Select your location from the map.</p>
+              <p className="text-xs text-gray-400">(Ctrl+wheel to zoom, wheel to pan. Page scroll disabled.)</p>
             </div>
 
             {/* Location Confirmation */}
