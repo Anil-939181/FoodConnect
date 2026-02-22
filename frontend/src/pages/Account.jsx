@@ -456,7 +456,7 @@ function Account() {
                   Edit Profile
                 </button>
                 <button
-                  onClick={() => setDeleteOtpSent(!deleteOtpSent)}
+                  onClick={() => handleSendOtp("DELETE")}
                   className="ml-4 text-xs font-medium text-red-500 hover:text-red-700 hover:underline transition"
                 >
                   Delete Account

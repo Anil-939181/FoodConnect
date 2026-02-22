@@ -20,15 +20,30 @@ async function sendOtpEmail({ to, otp, purpose }) {
   if (!transporter) {
     throw new Error("Missing SMTP credentials: set EMAIL_USER and EMAIL_PASS");
   }
-  const subject =
-    purpose === "VERIFY"
-      ? "Verify your email - OTP"
-      : "Reset your password - OTP";
+  let subject = "";
+  let message = "";
 
-  const message =
-    purpose === "VERIFY"
-      ? "Use this OTP to verify your email"
-      : "Use this OTP to reset your password";
+  switch (purpose) {
+    case "VERIFY":
+      subject = "Verify your email - OTP";
+      message = "Use this OTP to verify your email address.";
+      break;
+    case "RESET":
+      subject = "Reset your password - OTP";
+      message = "Use this OTP to reset your password. If you didn't request this, please ignore this email.";
+      break;
+    case "UPDATE":
+      subject = "Verify Profile Update - OTP";
+      message = "Use this OTP to authorize changes to your account details.";
+      break;
+    case "DELETE":
+      subject = "Confirm Account Deletion - OTP";
+      message = "Use this OTP to confirm the DELETION of your FoodConnect account. This action cannot be undone.";
+      break;
+    default:
+      subject = "Your FoodConnect OTP";
+      message = "Use this OTP to complete your requested action.";
+  }
 
   await transporter.sendMail({
     from: `FoodConnect <${process.env.EMAIL_USER}>`,
