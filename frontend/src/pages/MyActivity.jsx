@@ -222,22 +222,20 @@ function MyActivity() {
 
         <button
           onClick={() => setActiveTab("ongoing")}
-          className={`px-4 py-2 rounded-lg font-medium transition ${
-            activeTab === "ongoing"
+          className={`px-4 py-2 rounded-lg font-medium transition ${activeTab === "ongoing"
               ? "bg-green-600 text-white"
               : "bg-gray-200 text-gray-700"
-          }`}
+            }`}
         >
           Ongoing
         </button>
 
         <button
           onClick={() => setActiveTab("completed")}
-          className={`px-4 py-2 rounded-lg font-medium transition ${
-            activeTab === "completed"
+          className={`px-4 py-2 rounded-lg font-medium transition ${activeTab === "completed"
               ? "bg-green-600 text-white"
               : "bg-gray-200 text-gray-700"
-          }`}
+            }`}
         >
           Completed
         </button>
@@ -270,18 +268,16 @@ function MyActivity() {
       {/* Cards */}
       {!loading && (
         <div
-          className={`transition-all duration-300 ${
-            compactView
+          className={`transition-all duration-300 ${compactView
               ? "space-y-3"
               : "grid grid-cols-1 md:grid-cols-2 gap-6"
-          }`}
+            }`}
         >
           {filteredData.map(entry => (
             <div
               key={entry._id}
-              className={`bg-white shadow-md rounded-xl p-6 hover:shadow-xl transition ${
-                compactView ? "flex justify-between items-center" : ""
-              }`}
+              className={`bg-white shadow-md rounded-xl p-6 hover:shadow-xl transition ${compactView ? "flex justify-between items-center" : ""
+                }`}
             >
               <div>
                 <span className={getStatusBadge(entry.status)}>
@@ -327,8 +323,8 @@ function MyActivity() {
                         onClick={() => {
                           // Use organization's location directly from User model
                           if (org.latitude && org.longitude) {
-                            setMapModal({ 
-                              lat: org.latitude, 
+                            setMapModal({
+                              lat: org.latitude,
                               lon: org.longitude,
                               latDegrees: org.latDegrees,
                               latMinutes: org.latMinutes,
@@ -351,24 +347,24 @@ function MyActivity() {
                   ))}
 
 
-                  {role === "donor" && entry.status === "available" && (!entry.requestedBy || entry.requestedBy.length === 0) && (
-                    <>
-                      <button
-                        onClick={() => navigate(`/donations/${entry._id}/edit`)}
-                        className="text-blue-500 hover:text-blue-700 text-sm mr-2"
-                        title="Edit donation"
-                      >
-                        ✏️
-                      </button>
-                      <button
-                        onClick={() => handleDeleteDonation(entry._id)}
-                        className="text-red-500 hover:text-red-700 text-sm"
-                        title="Delete donation"
-                      >
-                        🗑️
-                      </button>
-                    </>
-                  )}
+                {role === "donor" && entry.status === "available" && (!entry.requestedBy || entry.requestedBy.length === 0) && (
+                  <>
+                    <button
+                      onClick={() => navigate(`/donations/${entry._id}/edit`)}
+                      className="text-blue-500 hover:text-blue-700 text-sm mr-2"
+                      title="Edit donation"
+                    >
+                      ✏️
+                    </button>
+                    <button
+                      onClick={() => handleDeleteDonation(entry._id)}
+                      className="text-red-500 hover:text-red-700 text-sm"
+                      title="Delete donation"
+                    >
+                      🗑️
+                    </button>
+                  </>
+                )}
                 {role === "organization" &&
                   entry.status === "reserved" && (
                     <>
@@ -446,7 +442,7 @@ function MyActivity() {
             <button
               onClick={() => setSelectedEntry(null)}
               className="absolute top-4 right-4 text-gray-500 hover:text-red-500 text-xl"
-      
+
             >
               ✕
             </button>
@@ -506,8 +502,8 @@ function MyActivity() {
                             onClick={() => {
                               // Use organization's location directly from User model
                               if (org.latitude && org.longitude) {
-                                setMapModal({ 
-                                  lat: org.latitude, 
+                                setMapModal({
+                                  lat: org.latitude,
                                   lon: org.longitude,
                                   latDegrees: org.latDegrees,
                                   latMinutes: org.latMinutes,
