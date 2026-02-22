@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
+import API from "../services/api";
 
 function Navbar() {
   const navigate = useNavigate();
@@ -11,6 +12,25 @@ function Navbar() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const [userProfile, setUserProfile] = useState(null);
+
+  useEffect(() => {
+    const fetchUser = async () => {
+      if (token) {
+        try {
+          const res = await API.get("/auth/me");
+          setUserProfile(res.data);
+          // Sync name to localStorage if it was missing or outdated
+          if (res.data.name && res.data.name !== name) {
+            localStorage.setItem("name", res.data.name);
+          }
+        } catch (err) {
+          console.error("Failed to load user profile in Navbar");
+        }
+      }
+    };
+    fetchUser();
+  }, [token, location.pathname]); // Re-fetch occasionally or on route change just to be somewhat fresh
 
   // Close menus when route changes
   useEffect(() => {
@@ -117,12 +137,16 @@ function Navbar() {
                     onClick={() => setProfileOpen(!profileOpen)}
                     className="flex items-center gap-2 px-4 py-2 rounded-full border border-gray-200 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-200"
                   >
-                    <div className="w-8 h-8 rounded-full bg-gradient-to-r from-blue-500 to-indigo-500 flex items-center justify-center text-white shadow-inner overflow-hidden">
-                      <svg className="w-full h-full text-white/90 mt-1.5" fill="currentColor" viewBox="0 0 24 24">
-                        <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
-                      </svg>
+                    <div className="w-8 h-8 rounded-full bg-gradient-to-r from-blue-500 to-indigo-500 flex items-center justify-center text-white shadow-inner overflow-hidden shrink-0">
+                      {userProfile?.profileImage ? (
+                        <img src={userProfile.profileImage} alt="Profile" className="w-full h-full object-cover" />
+                      ) : (
+                        <svg className="w-full h-full text-white/90 mt-1.5" fill="currentColor" viewBox="0 0 24 24">
+                          <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
+                        </svg>
+                      )}
                     </div>
-                    <span className="font-medium text-gray-700 hidden lg:block">{name || "Profile"}</span>
+                    <span className="font-medium text-gray-700 hidden lg:block">{userProfile?.name || name || "Profile"}</span>
                     <svg className={`w-4 h-4 text-gray-500 transition-transform duration-200 ${profileOpen ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                     </svg>
@@ -133,7 +157,7 @@ function Navbar() {
                       <div className="fixed inset-0 z-40" onClick={() => setProfileOpen(false)}></div>
                       <div className="absolute right-0 mt-3 w-64 bg-white rounded-2xl shadow-xl border border-gray-100 py-2 z-50 transform opacity-100 scale-100 origin-top-right transition-all">
                         <div className="px-5 py-3 border-b border-gray-100 bg-gray-50/50 rounded-t-2xl">
-                          <p className="font-semibold text-gray-900 truncate">{name}</p>
+                          <p className="font-semibold text-gray-900 truncate">{userProfile?.name || name}</p>
                           <p className="text-xs font-medium text-gray-500 uppercase tracking-wider mt-1">{role}</p>
                         </div>
 
@@ -226,13 +250,17 @@ function Navbar() {
 
                 <div className="pt-4 mt-2 border-t border-gray-100">
                   <div className="flex items-center gap-3 px-4 py-2 mb-2">
-                    <div className="w-10 h-10 rounded-full bg-gradient-to-r from-blue-500 to-indigo-500 flex items-center justify-center text-white shadow-inner overflow-hidden">
-                      <svg className="w-full h-full text-white/90 mt-2" fill="currentColor" viewBox="0 0 24 24">
-                        <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
-                      </svg>
+                    <div className="w-10 h-10 rounded-full bg-gradient-to-r from-blue-500 to-indigo-500 flex items-center justify-center text-white shadow-inner overflow-hidden shrink-0">
+                      {userProfile?.profileImage ? (
+                        <img src={userProfile.profileImage} alt="Profile" className="w-full h-full object-cover" />
+                      ) : (
+                        <svg className="w-full h-full text-white/90 mt-2" fill="currentColor" viewBox="0 0 24 24">
+                          <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
+                        </svg>
+                      )}
                     </div>
-                    <div>
-                      <p className="font-semibold text-gray-900">{name}</p>
+                    <div className="min-w-0">
+                      <p className="font-semibold text-gray-900 truncate">{userProfile?.name || name}</p>
                       <p className="text-sm font-medium text-gray-500 uppercase">{role}</p>
                     </div>
                   </div>

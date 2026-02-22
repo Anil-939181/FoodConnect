@@ -12,7 +12,8 @@ router.post("/verify-otp", require("../controllers/authController").verifyOtp);
 router.post("/reset-password", require("../controllers/authController").resetPassword);
 router.post("/forgot-password", require("../controllers/authController").forgotPassword);
 // profile update requires auth and OTP
-router.put("/update-profile", authMiddleware, require("../controllers/authController").updateProfile);
+const { upload } = require("../config/cloudinary");
+router.put("/update-profile", authMiddleware, upload.single("profileImage"), require("../controllers/authController").updateProfile);
 router.delete("/delete-account", authMiddleware, require("../controllers/authController").deleteAccount);
 router.post("/forgot-password", require("../controllers/authController").forgotPassword);
 

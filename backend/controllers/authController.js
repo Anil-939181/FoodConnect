@@ -5,46 +5,46 @@ const { sendOtpEmail } = require("../utils/email");
 
 // Register
 exports.register = async (req, res) => {
-    try {
-        const { 
-            name, email, password, role, phone, longitude, latitude, 
-            state, district, pincode, city,
-            latDegrees, latMinutes, latSeconds,
-            lonDegrees, lonMinutes, lonSeconds
-        } = req.body;
-        console.log(role);
-        const existingUser = await User.findOne({ email });
-        if (existingUser) {
-            return res.status(400).json({ message: "User already exists" });
-        }
-
-        const hashedPassword = await bcrypt.hash(password, 10);
-
-        const user = await User.create({
-            name,
-            email,
-            password: hashedPassword,
-            role,
-            phone,
-            state, 
-            district, 
-            pincode,
-            city,
-            latitude,
-            longitude,
-            latDegrees,
-            latMinutes,
-            latSeconds,
-            lonDegrees,
-            lonMinutes,
-            lonSeconds
-        });
-
-        res.status(201).json({ message: "User registered successfully" });
-
-    } catch (error) {
-        res.status(500).json({ message: error.message });
+  try {
+    const {
+      name, email, password, role, phone, longitude, latitude,
+      state, district, pincode, city,
+      latDegrees, latMinutes, latSeconds,
+      lonDegrees, lonMinutes, lonSeconds
+    } = req.body;
+    console.log(role);
+    const existingUser = await User.findOne({ email });
+    if (existingUser) {
+      return res.status(400).json({ message: "User already exists" });
     }
+
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    const user = await User.create({
+      name,
+      email,
+      password: hashedPassword,
+      role,
+      phone,
+      state,
+      district,
+      pincode,
+      city,
+      latitude,
+      longitude,
+      latDegrees,
+      latMinutes,
+      latSeconds,
+      lonDegrees,
+      lonMinutes,
+      lonSeconds
+    });
+
+    res.status(201).json({ message: "User registered successfully" });
+
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
 };
 
 // Check if email or phone already registered
@@ -68,43 +68,43 @@ exports.checkAvailability = async (req, res) => {
 
 // Login
 exports.login = async (req, res) => {
-    try {
-        const { email, phone, password } = req.body;
-        // Allow login with either email or phone
-        const user = await User.findOne({ $or: [ { email }, { phone: email } ] });
-        if (!user) {
-            return res.status(400).json({ message: "Invalid credentials" });
-        }
-
-        const isMatch = await bcrypt.compare(password, user.password);
-        if (!isMatch) {
-            return res.status(400).json({ message: "Invalid credentials" });
-        }
-
-        const token = jwt.sign(
-            { id: user._id, role: user.role },
-            process.env.JWT_SECRET,
-            { expiresIn: "1d" }
-        );
-        const role=user.role;
-        res.json({ token,role });
-
-    } catch (error) {
-        res.status(500).json({ message: error.message });
+  try {
+    const { email, phone, password } = req.body;
+    // Allow login with either email or phone
+    const user = await User.findOne({ $or: [{ email }, { phone: email }] });
+    if (!user) {
+      return res.status(400).json({ message: "Invalid credentials" });
     }
+
+    const isMatch = await bcrypt.compare(password, user.password);
+    if (!isMatch) {
+      return res.status(400).json({ message: "Invalid credentials" });
+    }
+
+    const token = jwt.sign(
+      { id: user._id, role: user.role },
+      process.env.JWT_SECRET,
+      { expiresIn: "1d" }
+    );
+    const role = user.role;
+    res.json({ token, role });
+
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
 };
 
 // Get current user
 exports.getCurrentUser = async (req, res) => {
-    try {
-        const user = await User.findById(req.user.id).select("-password");
-        if (!user) {
-            return res.status(404).json({ message: "User not found" });
-        }
-        res.json(user);
-    } catch (error) {
-        res.status(500).json({ message: error.message });
+  try {
+    const user = await User.findById(req.user.id).select("-password");
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
     }
+    res.json(user);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
 };
 
 // Send OTP for email verification
@@ -116,7 +116,7 @@ exports.sendOtp = async (req, res) => {
     }
     // Generate 6-digit OTP
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
-    console.log("otp :",otp);
+    console.log("otp :", otp);
     // Store OTP in-memory or DB (for demo, attach to user if exists)
     let user = await User.findOne({ email });
     if (!user && purpose === "RESET") {
@@ -165,6 +165,30 @@ exports.updateProfile = async (req, res) => {
   try {
     const userId = req.user.id;
     const { name, phone, state, district, pincode, city, latitude, longitude, latDegrees, latMinutes, latSeconds, lonDegrees, lonMinutes, lonSeconds, otp } = req.body;
+    let profileImage = undefined;
+    if (req.file) {
+      try {
+        const uploadResult = await new Promise((resolve, reject) => {
+          require("../config/cloudinary").cloudinary.uploader
+            .upload_stream(
+              {
+                folder: "food-connect/profile-images",
+                public_id: `user_${userId}`,
+                overwrite: true,
+              },
+              (error, result) => {
+                if (error) reject(error);
+                else resolve(result);
+              }
+            )
+            .end(req.file.buffer);
+        });
+        profileImage = uploadResult.secure_url;
+      } catch (uploadError) {
+        console.error("Cloudinary upload error:", uploadError);
+        return res.status(500).json({ message: "Image upload failed" });
+      }
+    }
     const user = await User.findById(userId);
     if (!user) {
       return res.status(404).json({ message: "User not found" });
@@ -203,6 +227,9 @@ exports.updateProfile = async (req, res) => {
     user.lonDegrees = lonDegrees || user.lonDegrees;
     user.lonMinutes = lonMinutes || user.lonMinutes;
     user.lonSeconds = lonSeconds || user.lonSeconds;
+    if (profileImage !== undefined) {
+      user.profileImage = profileImage;
+    }
     await user.save();
     delete global.otpStore[email];
     res.json({ message: "Profile updated" });

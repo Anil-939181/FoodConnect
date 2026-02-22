@@ -18,6 +18,10 @@ function Account() {
   const [deleteOtp, setDeleteOtp] = useState("");
   const [deleting, setDeleting] = useState(false);
 
+  // profile image states
+  const [profileImageFile, setProfileImageFile] = useState(null);
+  const [previewImage, setPreviewImage] = useState(null);
+
   // form states
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
@@ -82,6 +86,8 @@ function Account() {
     setLonDegrees(userData.lonDegrees?.toString() || "");
     setLonMinutes(userData.lonMinutes?.toString() || "");
     setLonSeconds(userData.lonSeconds?.toString() || "");
+    setPreviewImage(userData.profileImage || null);
+    setProfileImageFile(null);
   };
 
   // --- View Mode Map Initialization ---
@@ -331,17 +337,28 @@ function Account() {
     }
     setLoading(true);
     try {
-      await API.put("/auth/update-profile", {
-        name, phone, state, district, pincode, city,
-        latitude: latitude ? parseFloat(latitude) : null,
-        longitude: longitude ? parseFloat(longitude) : null,
-        latDegrees: latDegrees ? parseInt(latDegrees) : null,
-        latMinutes: latMinutes ? parseInt(latMinutes) : null,
-        latSeconds: latSeconds ? parseFloat(latSeconds) : null,
-        lonDegrees: lonDegrees ? parseInt(lonDegrees) : null,
-        lonMinutes: lonMinutes ? parseInt(lonMinutes) : null,
-        lonSeconds: lonSeconds ? parseFloat(lonSeconds) : null,
-        otp
+      const formData = new FormData();
+      formData.append("name", name);
+      formData.append("phone", phone);
+      formData.append("state", state);
+      formData.append("district", district);
+      formData.append("pincode", pincode);
+      formData.append("city", city);
+      if (latitude) formData.append("latitude", latitude);
+      if (longitude) formData.append("longitude", longitude);
+      if (latDegrees) formData.append("latDegrees", latDegrees);
+      if (latMinutes) formData.append("latMinutes", latMinutes);
+      if (latSeconds) formData.append("latSeconds", latSeconds);
+      if (lonDegrees) formData.append("lonDegrees", lonDegrees);
+      if (lonMinutes) formData.append("lonMinutes", lonMinutes);
+      if (lonSeconds) formData.append("lonSeconds", lonSeconds);
+      formData.append("otp", otp);
+      if (profileImageFile) {
+        formData.append("profileImage", profileImageFile);
+      }
+
+      await API.put("/auth/update-profile", formData, {
+        headers: { "Content-Type": "multipart/form-data" },
       });
       toast.success("Profile updated successfully");
       const res = await API.get("/auth/me");
@@ -349,6 +366,8 @@ function Account() {
       setMode("VIEW");
       setOtpSent(false);
       setOtp("");
+      setProfileImageFile(null);
+      setPreviewImage(null);
     } catch (error) {
       toast.error(error.response?.data?.message || "Failed to update profile.");
     } finally {
@@ -361,6 +380,7 @@ function Account() {
     setOtpSent(false);
     setOtp("");
     if (user) resetFormToUser(user);
+    setProfileImageFile(null);
   };
 
   const inputClass = "w-full border border-gray-200 rounded-xl px-4 py-2 text-sm text-gray-800 bg-gray-50 focus:outline-none focus:ring-2 focus:ring-green-400 focus:bg-white transition";
@@ -373,8 +393,12 @@ function Account() {
         <div className="bg-white rounded-3xl p-6 sm:p-10 shadow-xl border border-gray-100 mb-8 relative overflow-hidden">
           <div className="absolute top-0 right-0 w-64 h-64 bg-green-50 rounded-full blur-3xl opacity-50 -z-10 transform translate-x-1/2 -translate-y-1/2"></div>
           <div className="flex flex-col sm:flex-row items-center sm:items-start gap-6">
-            <div className="w-24 h-24 rounded-full bg-gradient-to-br from-green-500 to-emerald-500 flex items-center justify-center text-white text-4xl shadow-lg ring-4 ring-green-50">
-              {user?.name?.charAt(0).toUpperCase() || "U"}
+            <div className="w-24 h-24 rounded-[2rem] bg-gradient-to-br from-green-500 to-emerald-500 flex items-center justify-center text-white text-4xl shadow-lg ring-4 ring-green-50 overflow-hidden shrink-0">
+              {user?.profileImage ? (
+                <img src={user.profileImage} alt="Profile" className="w-full h-full object-cover" />
+              ) : (
+                user?.name?.charAt(0).toUpperCase() || "U"
+              )}
             </div>
             <div className="text-center sm:text-left flex-1 mt-2">
               <h1 className="text-3xl font-bold text-gray-800 tracking-tight">{user?.name}</h1>
@@ -526,6 +550,37 @@ function Account() {
             </div>
 
             <form onSubmit={handleSubmit} className="space-y-6">
+
+              {/* Profile Image Picker */}
+              <div className="flex flex-col sm:flex-row items-center gap-6 mb-8 pt-4">
+                <div className="w-24 h-24 rounded-[2rem] bg-gray-100 border-2 border-dashed border-gray-300 flex items-center justify-center overflow-hidden relative group">
+                  {previewImage ? (
+                    <img src={previewImage} alt="Preview" className="w-full h-full object-cover" />
+                  ) : (
+                    <span className="text-4xl text-gray-400">👤</span>
+                  )}
+                  <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
+                    <span className="text-white text-xs font-bold">Change</span>
+                  </div>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                    onChange={(e) => {
+                      const file = e.target.files[0];
+                      if (file) {
+                        setProfileImageFile(file);
+                        setPreviewImage(URL.createObjectURL(file));
+                      }
+                    }}
+                  />
+                </div>
+                <div>
+                  <p className="text-sm font-bold text-gray-800">Profile Picture</p>
+                  <p className="text-xs text-gray-500 mt-1 max-w-xs">Upload a photo to help organizations and donors recognize you. (Optional)</p>
+                </div>
+              </div>
+
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
                   <label className="block text-xs font-semibold text-gray-400 uppercase tracking-widest mb-1.5">Full Name</label>
