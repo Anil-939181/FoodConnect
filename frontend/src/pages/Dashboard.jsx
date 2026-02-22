@@ -339,17 +339,6 @@ function Dashboard() {
             />
           </div>
 
-          <div className="bg-white rounded-3xl p-6 shadow-sm border border-gray-100 flex flex-col md:flex-row items-center justify-between gap-6 overflow-hidden">
-            <div>
-              <p className="text-gray-500 font-semibold uppercase tracking-wider text-sm mb-1">Local Network</p>
-              <h3 className="text-3xl font-extrabold text-gray-800">Nearby Available Donations</h3>
-              <p className="text-gray-500 mt-2">Active donations available for pickup within your radius.</p>
-            </div>
-            <div className="w-full md:w-auto bg-teal-50 text-teal-700 font-extrabold text-5xl md:text-6xl px-10 py-6 rounded-2xl border border-teal-100 flex items-center justify-center shadow-sm relative group cursor-default">
-              <div className="relative z-10">{stats.nearbyAvailableDonationsCount}</div>
-              <svg className="absolute -right-4 -bottom-4 w-32 h-32 text-teal-600 opacity-5 group-hover:scale-110 transition-transform duration-500" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clipRule="evenodd"></path></svg>
-            </div>
-          </div>
 
           {/* Recent Requests Table */}
           {recent.length > 0 ? (

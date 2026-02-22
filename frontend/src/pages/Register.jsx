@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { toast } from "react-toastify";
 import API from "../services/api";
 import { decimalToDMS, dmsToDecimal } from "../utils/coordinates";
@@ -470,7 +470,7 @@ function Register() {
           {/* Login link */}
           <p className="text-center text-sm text-gray-400 mt-5">
             Already have an account?{" "}
-            <a href="/login" className="text-green-600 font-bold hover:underline">Sign in</a>
+            <Link to="/login" className="text-green-600 font-bold hover:underline">Sign in</Link>
           </p>
         </form>
       </div>

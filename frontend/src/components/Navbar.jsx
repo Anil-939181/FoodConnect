@@ -48,7 +48,7 @@ function Navbar() {
 
   const handleLogout = () => {
     localStorage.clear();
-    navigate("/");
+    window.location.href = "/";
   };
 
   const NavLink = ({ to, children }) => {

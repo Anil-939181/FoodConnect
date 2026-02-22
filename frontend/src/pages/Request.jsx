@@ -56,18 +56,18 @@ function Request() {
     navigate("/matches", { state: searchData });
   };
 
-  const inputClass = "w-full border border-gray-200 rounded-xl px-4 py-2 sm:py-2.5 text-xs sm:text-sm text-gray-800 bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent focus:bg-white transition placeholder-gray-400";
+  const inputClass = "w-full border border-gray-200 rounded-xl px-4 py-2 sm:py-2.5 text-xs sm:text-sm text-gray-800 bg-gray-50 focus:outline-none focus:ring-2 focus:ring-emerald-400 focus:border-transparent focus:bg-white transition placeholder-gray-400";
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-cyan-50 flex items-center justify-center sm:px-4 sm:py-10">
+    <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-white to-teal-50 flex items-center justify-center sm:px-4 sm:py-10">
       {/* ── Card ── */}
       <div className="w-full max-w-2xl bg-white sm:rounded-3xl shadow-xl overflow-hidden min-h-screen sm:min-h-0 flex flex-col">
         {/* Accent bar */}
-        <div className="h-1.5 bg-gradient-to-r from-blue-700 via-cyan-400 to-blue-500 shrink-0" />
+        <div className="h-1.5 bg-gradient-to-r from-green-700 via-emerald-400 to-green-500 shrink-0" />
 
         {/* Header */}
         <div className="flex flex-col items-center px-6 sm:px-8 pt-8 pb-4 shrink-0">
-          <div className="w-14 h-14 flex items-center justify-center bg-gradient-to-br from-blue-600 to-cyan-500 rounded-2xl shadow-lg text-2xl mb-4 select-none">
+          <div className="w-14 h-14 flex items-center justify-center bg-gradient-to-br from-green-600 to-emerald-500 rounded-2xl shadow-lg text-2xl mb-4 select-none">
             🔍
           </div>
           <h1 className="text-2xl font-extrabold text-gray-800 tracking-tight text-center">Find Donations</h1>
@@ -147,7 +147,7 @@ function Request() {
               <button
                 type="button"
                 onClick={addItem}
-                className="mt-3 text-blue-600 font-semibold text-xs sm:text-sm hover:underline flex items-center gap-1"
+                className="mt-3 text-emerald-600 font-semibold text-xs sm:text-sm hover:underline flex items-center gap-1"
               >
                 <span>+</span> Add Another Item
               </button>
@@ -173,7 +173,7 @@ function Request() {
           <div className="mt-8">
             <button
               type="submit"
-              className="w-full flex items-center justify-center gap-2 py-2.5 sm:py-3 rounded-xl bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-700 hover:to-cyan-600 text-white font-bold text-xs sm:text-sm shadow-lg transition"
+              className="w-full flex items-center justify-center gap-2 py-2.5 sm:py-3 rounded-xl bg-gradient-to-r from-green-600 to-emerald-500 hover:from-green-700 hover:to-emerald-600 text-white font-bold text-xs sm:text-sm shadow-lg transition"
             >
               🚀 Search Donations
             </button>
