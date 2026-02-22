@@ -105,25 +105,35 @@ function Matches() {
 
     if (total <= 0) return { label: "Expired", color: "text-red-600" };
 
-    const hours = Math.floor(total / (1000 * 60 * 60));
+    const days = Math.floor(total / (1000 * 60 * 60 * 24));
+    const hours = Math.floor((total / (1000 * 60 * 60)) % 24);
     const minutes = Math.floor((total / (1000 * 60)) % 60);
 
-    if (hours <= 2) {
+    const totalHours = Math.floor(total / (1000 * 60 * 60));
+
+    if (days >= 1) {
       return {
-        label: `${hours}h ${minutes}m left`,
+        label: `${days} day${days > 1 ? 's' : ''} ${hours}h left`,
+        color: "text-green-600"
+      };
+    }
+
+    if (totalHours <= 2) {
+      return {
+        label: `${totalHours}h ${minutes}m left`,
         color: "text-red-600 animate-pulse font-bold"
       };
     }
 
-    if (hours <= 5) {
+    if (totalHours <= 5) {
       return {
-        label: `${hours}h ${minutes}m left`,
+        label: `${totalHours}h ${minutes}m left`,
         color: "text-orange-600"
       };
     }
 
     return {
-      label: `${hours}h ${minutes}m left`,
+      label: `${totalHours}h ${minutes}m left`,
       color: "text-green-600"
     };
   };
@@ -151,6 +161,10 @@ function Matches() {
         donationId,
         requiredBefore: searchData?.requiredBefore
       });
+
+      // Optimistic UI update: remove the requested item from the view
+      setMatches(prev => prev.filter(m => m._id !== donationId));
+      setShowRequestModal(null);
 
       toast.success("Request sent successfully");
     } catch (error) {
@@ -338,10 +352,11 @@ function Matches() {
 
                     <button
                       onClick={() => setSelectedMap(donation)}
-                      className="w-12 flex-shrink-0 bg-white border-2 border-gray-200 text-gray-600 py-2.5 rounded-xl hover:border-blue-500 hover:text-blue-600 transition-colors flex items-center justify-center group/btn"
+                      className="px-4 flex-shrink-0 bg-white border-2 border-gray-200 text-gray-700 font-bold py-2.5 rounded-xl hover:border-blue-500 hover:text-blue-600 transition-colors flex items-center justify-center gap-1.5 group/btn"
                       title="View on Map"
                     >
                       <svg className="w-5 h-5 group-hover/btn:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"></path></svg>
+                      <span className="text-sm">Map</span>
                     </button>
                   </div>
                 </div>

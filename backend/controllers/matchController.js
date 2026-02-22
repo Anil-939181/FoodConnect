@@ -51,7 +51,8 @@ exports.searchMatches = async (req, res) => {
     // 🔥 Base Query Conditions
     const baseQuery = {
       status: { $in: ["available", "requested", "reserved"] },
-      expiryTime: { $gt: new Date() }
+      expiryTime: { $gt: new Date() },
+      requestedBy: { $ne: req.user.id }
     };
 
     // 🔥 If requiredBefore exists → ensure donation lasts at least until that time
@@ -220,7 +221,7 @@ exports.requestDonation = async (req, res) => {
       const orgUser = await User.findById(req.user.id).select("name");
       if (donorUser && donorUser.email) {
         const subject = `You have a new request for your donation`;
-        const itemsHtml = (donation.items || []).map(i => `<li>${i.name} — ${i.quantity} ${i.unit||""}</li>`).join("");
+        const itemsHtml = (donation.items || []).map(i => `<li>${i.name} — ${i.quantity} ${i.unit || ""}</li>`).join("");
         const html = `
           <p>Hi ${donorUser.name || "donor"},</p>
           <p>Your donation has received a new request${orgUser?.name ? ` from <b>${orgUser.name}</b>` : ""}.</p>
@@ -292,7 +293,7 @@ exports.approveDonation = async (req, res) => {
       const donorUser = await User.findById(donation.donor).select("name email");
       if (orgUser && orgUser.email) {
         const subject = `Your request has been approved`;
-        const itemsHtml = (donation.items || []).map(i => `<li>${i.name} — ${i.quantity} ${i.unit||""}</li>`).join("");
+        const itemsHtml = (donation.items || []).map(i => `<li>${i.name} — ${i.quantity} ${i.unit || ""}</li>`).join("");
         const html = `
           <p>Hi ${orgUser.name || "partner"},</p>
           <p>Your request for the donation has been approved by the donor.</p>
@@ -360,7 +361,7 @@ exports.completeMatch = async (req, res) => {
       const orgUser = await User.findById(request.requester).select("name email phone");
       const donorUser = await User.findById(donation.donor).select("name email");
       const subject = `Match completed`;
-      const itemsHtml = (donation.items || []).map(i => `<li>${i.name} — ${i.quantity} ${i.unit||""}</li>`).join("");
+      const itemsHtml = (donation.items || []).map(i => `<li>${i.name} — ${i.quantity} ${i.unit || ""}</li>`).join("");
       const htmlOrg = `
         <p>Hi ${orgUser?.name || "partner"},</p>
         <p>The donation you picked up has been marked completed. Thank you!</p>
@@ -435,7 +436,7 @@ exports.cancelRequest = async (req, res) => {
       const orgUser = await User.findById(req.user.id).select("name email");
       if (donorUser?.email) {
         const subject = `Request cancelled`;
-        const itemsHtml = (donation.items || []).map(i => `<li>${i.name} — ${i.quantity} ${i.unit||""}</li>`).join("");
+        const itemsHtml = (donation.items || []).map(i => `<li>${i.name} — ${i.quantity} ${i.unit || ""}</li>`).join("");
         const html = `
           <p>Hi ${donorUser.name || "donor"},</p>
           <p>The request from <b>${orgUser?.name || "an organization"}</b> has been cancelled.</p>

@@ -175,7 +175,7 @@ function MyActivity() {
     const base = "px-3 py-1 text-xs font-semibold rounded-full ";
     const colors = {
       available: "bg-gray-200 text-gray-700",
-      requested: "bg-blue-100 text-blue-600",
+      requested: "bg-green-100 text-green-600",
       reserved: "bg-orange-100 text-orange-600",
       completed: "bg-green-100 text-green-600",
       fulfilled: "bg-green-100 text-green-600",
@@ -211,445 +211,508 @@ function MyActivity() {
     });
 
   return (
-    <div className="max-w-7xl mx-auto px-4">
-
-      <h2 className="text-3xl font-bold mb-6 text-gray-800">
-        My Activity
-      </h2>
-
-      {/* Controls */}
-      <div className="flex flex-wrap gap-4 items-center mb-6">
-
-        <button
-          onClick={() => setActiveTab("ongoing")}
-          className={`px-4 py-2 rounded-lg font-medium transition ${activeTab === "ongoing"
-              ? "bg-green-600 text-white"
-              : "bg-gray-200 text-gray-700"
-            }`}
-        >
-          Ongoing
-        </button>
-
-        <button
-          onClick={() => setActiveTab("completed")}
-          className={`px-4 py-2 rounded-lg font-medium transition ${activeTab === "completed"
-              ? "bg-green-600 text-white"
-              : "bg-gray-200 text-gray-700"
-            }`}
-        >
-          Completed
-        </button>
-
-        <input
-          type="text"
-          placeholder="Search items..."
-          value={searchText}
-          onChange={(e) => setSearchText(e.target.value)}
-          className="border rounded-lg px-3 py-2 ml-auto"
-        />
-
-        <button
-          onClick={() => setCompactView(!compactView)}
-          className="bg-gray-100 px-3 py-2 rounded-lg"
-        >
-          {compactView ? "Card View" : "Compact View"}
-        </button>
+    <div className="min-h-screen bg-gray-50 pb-12">
+      {/* 🌟 Premium Header */}
+      <div className="bg-gradient-to-tr from-green-700 to-emerald-900 text-white pb-20 pt-10 md:pt-12 px-4 shadow-inner mb-6">
+        <div className="max-w-7xl mx-auto">
+          <h2 className="text-4xl md:text-5xl font-extrabold mb-4 tracking-tight">
+            My Activity
+          </h2>
+          <p className="text-green-100 text-lg max-w-2xl font-medium">
+            Track your donations, monitor ongoing requests, and review your past contributions to the community.
+          </p>
+        </div>
       </div>
 
-      {/* Loading skeleton */}
-      {loading && (
-        <div className="space-y-4">
-          {[...Array(4)].map((_, i) => (
-            <div key={i} className="bg-white rounded-xl p-6 shadow animate-pulse h-28"></div>
-          ))}
-        </div>
-      )}
+      <div className="max-w-7xl mx-auto px-2 md:px-6 -mt-16">
 
-      {/* Cards */}
-      {!loading && (
-        <div
-          className={`transition-all duration-300 ${compactView
-              ? "space-y-3"
-              : "grid grid-cols-1 md:grid-cols-2 gap-6"
-            }`}
-        >
-          {filteredData.map(entry => (
-            <div
-              key={entry._id}
-              className={`bg-white shadow-md rounded-xl p-6 hover:shadow-xl transition ${compactView ? "flex justify-between items-center" : ""
+        {/* 🎨 FILTER SECTION - Glassmorphism */}
+        <div className="bg-white/95 backdrop-blur-xl shadow-[0_8px_30px_rgb(0,0,0,0.08)] rounded-2xl p-4 md:p-6 mb-8 md:mb-10 border border-white/40 flex flex-col md:flex-row items-center justify-between gap-4">
+
+          <div className="flex bg-gray-100 p-1.5 rounded-xl w-full md:w-auto">
+            <button
+              onClick={() => setActiveTab("ongoing")}
+              className={`flex-1 md:flex-none px-6 py-2.5 rounded-lg font-bold text-sm transition-all duration-300 ${activeTab === "ongoing"
+                ? "bg-white text-green-700 shadow-sm"
+                : "text-gray-500 hover:text-gray-700"
                 }`}
             >
-              <div>
-                <span className={getStatusBadge(entry.status)}>
-                  {entry.status.toUpperCase()}
-                </span>
+              Ongoing Activity
+            </button>
+            <button
+              onClick={() => setActiveTab("completed")}
+              className={`flex-1 md:flex-none px-6 py-2.5 rounded-lg font-bold text-sm transition-all duration-300 ${activeTab === "completed"
+                ? "bg-white text-green-700 shadow-sm"
+                : "text-gray-500 hover:text-gray-700"
+                }`}
+            >
+              History
+            </button>
+          </div>
 
-                {role === "donor" && (
-                  <ul className="mt-2 text-sm text-gray-600">
-                    {entry.items?.slice(0, compactView ? 1 : 3).map((item, i) => (
-                      <li key={i}>
-                        • {item.name} — {item.quantity} {item.unit}
-                      </li>
-                    ))}
-                  </ul>
-                )}
+          <div className="relative w-full md:w-80">
+            <input
+              type="text"
+              placeholder="Search items..."
+              value={searchText}
+              onChange={(e) => setSearchText(e.target.value)}
+              className="w-full bg-gray-50 border border-gray-200 text-gray-700 py-2.5 pl-10 pr-4 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all font-medium placeholder-gray-400"
+            />
+            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+              <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+            </div>
+          </div>
+        </div>
 
-                {role === "organization" && entry.matchedDonation && (
-                  <ul className="mt-2 text-sm text-gray-600">
-                    {entry.matchedDonation.items
-                      ?.slice(0, compactView ? 1 : 3)
-                      .map((item, i) => (
-                        <li key={i}>
-                          • {item.name} — {item.quantity} {item.unit}
-                        </li>
+        {/* Loading skeleton */}
+        {loading && (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {[...Array(6)].map((_, i) => (
+              <div key={i} className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 animate-pulse flex flex-col h-48"></div>
+            ))}
+          </div>
+        )}
+
+        {/* Cards */}
+        {!loading && (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
+            {
+              filteredData.map(entry => (
+                <div
+                  key={entry._id}
+                  className="group bg-white rounded-2xl p-4 md:p-5 border border-gray-100 shadow-sm hover:shadow-md transition-all duration-300 flex flex-col h-full relative overflow-hidden"
+                >
+                  <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-green-400 to-emerald-500 transform scale-x-0 group-hover:scale-x-100 transition-transform origin-left duration-300"></div>
+
+                  <div className="flex justify-between items-start mb-4">
+                    <div>
+                      <span className={`${getStatusBadge(entry.status)} uppercase tracking-wider`}>
+                        {entry.status}
+                      </span>
+                      <p className="text-xs text-gray-400 mt-2 font-medium">#{entry._id.slice(-6)}</p>
+                    </div>
+
+                    {/* Subtle Edit / Delete in top right */}
+                    {role === "donor" && entry.status === "available" && (!entry.requestedBy || entry.requestedBy.length === 0) && (
+                      <div className="flex gap-1">
+                        <button
+                          onClick={() => navigate(`/donations/${entry._id}/edit`)}
+                          className="p-1.5 text-gray-400 hover:text-green-600 hover:bg-green-50 rounded-lg transition-colors"
+                          title="Edit donation"
+                        >
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>
+                        </button>
+                        <button
+                          onClick={() => handleDeleteDonation(entry._id)}
+                          className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                          title="Delete donation"
+                        >
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                        </button>
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="flex-1 bg-gray-50/50 rounded-xl p-3 border border-gray-50 mb-4">
+                    <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Items</p>
+                    <div className="flex flex-wrap gap-2">
+                      {role === "donor" && entry.items?.slice(0, 3).map((item, i) => (
+                        <span key={i} className="inline-flex items-center gap-1 bg-white border border-gray-200 text-gray-600 text-xs font-bold px-2 py-1 rounded shadow-sm">
+                          {item.name} <span className="text-green-600">{item.quantity} {item.unit}</span>
+                        </span>
                       ))}
-                  </ul>
-                )}
+                      {role === "organization" && entry.matchedDonation?.items?.slice(0, 3).map((item, i) => (
+                        <span key={i} className="inline-flex items-center gap-1 bg-white border border-gray-200 text-gray-600 text-xs font-bold px-2 py-1 rounded shadow-sm">
+                          {item.name} <span className="text-green-600">{item.quantity} {item.unit}</span>
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="mt-auto">
+                    <div className="flex flex-col gap-2">
+
+                      {role === "organization" && entry.status === "reserved" && (
+                        <div className="flex w-full gap-2">
+                          <button
+                            onClick={() => handleComplete(entry._id)}
+                            className="flex-1 bg-green-50 text-green-700 font-semibold py-2 rounded-xl hover:bg-green-100 border border-green-200 transition text-sm"
+                          >
+                            Complete
+                          </button>
+                          <button
+                            onClick={() => handleCancel(entry._id)}
+                            className="flex-1 bg-red-50 text-red-600 font-semibold py-2 rounded-xl border border-red-200 hover:bg-red-100 transition text-sm"
+                          >
+                            Cancel
+                          </button>
+                        </div>
+                      )}
+
+                      <button
+                        onClick={() => setSelectedEntry(entry)}
+                        className="w-full bg-white border-2 border-gray-200 text-gray-600 font-bold py-2 rounded-xl hover:border-green-500 hover:text-green-600 hover:bg-green-50 transition-colors flex items-center justify-center gap-1.5 text-sm"
+                      >
+                        View Details
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
+                      </button>
+
+                    </div>
+                  </div>
+                </div>
+              ))
+            }
+          </div>
+        )}
+
+        {/* Pagination */}
+        <div className="flex justify-center items-center gap-4 mt-10">
+          <button
+            disabled={page === 1}
+            onClick={() => setPage(prev => prev - 1)}
+            className="px-4 py-2 bg-gray-200 rounded disabled:opacity-50"
+          >
+            Prev
+          </button>
+
+          <span className="font-semibold">
+            Page {page} of {totalPages}
+          </span>
+
+          <button
+            disabled={page === totalPages}
+            onClick={() => setPage(prev => prev + 1)}
+            className="px-4 py-2 bg-gray-200 rounded disabled:opacity-50"
+          >
+            Next
+          </button>
+        </div>
+        {/* DELETE CONFIRMATION MODAL */}
+        {deleteModal && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div className="bg-white rounded-lg p-6 w-full max-w-md">
+              <h3 className="text-lg font-bold mb-4 text-red-600">Confirm Deletion</h3>
+              <p>This donation helps people in need. Consider completing it instead.</p>
+              <p className="mt-4">Are you sure you want to delete?</p>
+              <div className="mt-6 flex justify-end gap-3">
+                <button className="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300" onClick={cancelDelete}>Cancel</button>
+                <button className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700" onClick={confirmDelete}>Delete</button>
+              </div>
+            </div>
+          </div>
+        )}
+
+
+        {/* DETAILS MODAL */}
+        {selectedEntry && (
+          <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+            <div className="bg-white rounded-2xl p-6 w-full max-w-lg shadow-2xl relative overflow-y-auto max-h-[90vh]">
+              <button
+                onClick={() => setSelectedEntry(null)}
+                className="absolute top-4 right-4 bg-gray-100 text-gray-500 hover:text-red-500 hover:bg-red-50 w-8 h-8 rounded-full flex items-center justify-center transition-colors"
+                title="Close"
+              >
+                ✕
+              </button>
+
+              <h3 className="text-2xl font-bold mb-5 text-gray-800 border-b pb-3">
+                Donation Details
+              </h3>
+
+              <div className="mb-4">
+                <span className={`${getStatusBadge(selectedEntry.status)} uppercase tracking-wider text-sm px-3 py-1`}>
+                  {selectedEntry.status}
+                </span>
               </div>
 
-              <div className="flex gap-3 mt-3 flex-wrap">
+              {role === "donor" && (
+                <div className="mt-4 space-y-4">
+                  <div className="grid grid-cols-2 gap-4 bg-gray-50 p-4 rounded-xl border border-gray-100">
+                    <div>
+                      <p className="text-xs text-gray-500 uppercase font-semibold">Meal Type</p>
+                      <p className="font-medium text-gray-800">{selectedEntry.mealType}</p>
+                    </div>
+                    <div>
+                      <p className="text-xs text-gray-500 uppercase font-semibold">Created At</p>
+                      <p className="font-medium text-gray-800 text-sm">{new Date(selectedEntry.createdAt).toLocaleString()}</p>
+                    </div>
+                    <div className="col-span-2">
+                      <p className="text-xs text-gray-500 uppercase font-semibold">Expiry</p>
+                      <p className="font-medium text-gray-800 text-sm">{new Date(selectedEntry.expiryTime).toLocaleString()}</p>
+                    </div>
+                  </div>
 
-                {role === "donor" &&
-                  entry.status === "requested" &&
-                  entry.requestedBy?.map(org => (
-                    <div key={org._id} className="flex items-center gap-2">
-                      <button
-                        onClick={() => handleApprove(entry._id, org._id)}
-                        className="bg-green-600 text-white px-3 py-1 rounded-md text-sm"
-                      >
-                        Approve {org.name}
-                      </button>
+                  <div>
+                    <h4 className="font-semibold text-gray-800 flex items-center gap-2 mb-2">
+                      <svg className="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path></svg>
+                      Items
+                    </h4>
+                    <ul className="space-y-2">
+                      {selectedEntry.items?.map((item, i) => (
+                        <li key={i} className="flex justify-between items-center bg-white border border-gray-100 p-2.5 rounded-lg shadow-sm">
+                          <span className="font-medium text-gray-700">{item.name}</span>
+                          <span className="bg-green-50 text-green-700 font-bold px-2 py-1 rounded text-sm">{item.quantity} {item.unit}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+
+                  {/* Incoming Requests Section inside the modal */}
+                  {selectedEntry.status === "requested" && selectedEntry.requestedBy && selectedEntry.requestedBy.length > 0 && (
+                    <div className="mt-6 border-t pt-4 border-gray-100">
+                      <h4 className="font-semibold text-gray-800 mb-3 flex items-center gap-2">
+                        <svg className="w-5 h-5 text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path></svg>
+                        Pending Requests
+                      </h4>
+                      <div className="space-y-3">
+                        {selectedEntry.requestedBy.map(org => (
+                          <div key={org._id} className="bg-gray-50 border border-gray-200 rounded-xl p-4 flex flex-col sm:flex-row gap-3 items-start sm:items-center justify-between">
+                            <div>
+                              <p className="font-bold text-gray-800">{org.name}</p>
+                              {org.city && <p className="text-xs text-gray-500">📍 {org.city}</p>}
+                            </div>
+                            <div className="flex w-full sm:w-auto gap-2">
+                              <button
+                                onClick={() => {
+                                  if (org.latitude && org.longitude) {
+                                    setMapModal({
+                                      lat: org.latitude, lon: org.longitude,
+                                      latDegrees: org.latDegrees, latMinutes: org.latMinutes, latSeconds: org.latSeconds,
+                                      lonDegrees: org.lonDegrees, lonMinutes: org.lonMinutes, lonSeconds: org.lonSeconds,
+                                      name: org.name, city: org.city
+                                    });
+                                  } else {
+                                    setMapModal({ query: `${org.name} ${org.city || ''}`.trim() });
+                                  }
+                                }}
+                                className="flex-1 sm:flex-none px-4 py-2 bg-white border border-gray-300 text-gray-700 font-semibold rounded-lg hover:bg-gray-50 transition text-sm"
+                              >
+                                View Map
+                              </button>
+                              <button
+                                onClick={() => {
+                                  handleApprove(selectedEntry._id, org._id);
+                                  setSelectedEntry(null);
+                                }}
+                                className="flex-1 sm:flex-none px-4 py-2 bg-green-600 text-white font-semibold rounded-lg hover:bg-green-700 shadow-sm transition text-sm shadow-green-600/20"
+                              >
+                                Approve
+                              </button>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Show organizations that accepted this donation */}
+                  {selectedEntry.acceptedBy && (
+                    <div className="mt-6 border-t pt-4 border-gray-100">
+                      <h4 className="font-semibold text-gray-800 flex items-center gap-2 mb-3">
+                        <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                        Accepted By
+                      </h4>
+                      {Array.isArray(selectedEntry.acceptedBy) ? (
+                        selectedEntry.acceptedBy.map((org) => (
+                          <div key={org._id} className="bg-blue-50/50 border border-blue-100 p-3 rounded-xl mb-2">
+                            <p className="font-bold text-blue-900">{org.name}</p>
+                            <p className="text-sm text-blue-700">{org.city} {org.phone ? `— 📞 ${org.phone}` : ""} {org.email ? `— ✉️ ${org.email}` : ""}</p>
+                          </div>
+                        ))
+                      ) : (
+                        <div className="bg-blue-50 border border-blue-100 p-3 rounded-xl">
+                          <p className="font-medium">{selectedEntry.acceptedBy.name}</p>
+                          <p className="text-gray-500">{selectedEntry.acceptedBy.city} — {selectedEntry.acceptedBy.phone || selectedEntry.acceptedBy.email}</p>
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  {selectedEntry.requestedBy && selectedEntry.requestedBy.length > 0 && (
+                    <div className="mt-3">
+                      <h4 className="font-semibold">Requested By</h4>
+                      {selectedEntry.requestedBy.map((org) => (
+                        <div key={org._id} className="text-sm text-gray-700 flex items-center justify-between">
+                          <div>
+                            <p className="font-medium">{org.name}</p>
+                            <p className="text-gray-500">{org.city} — {org.phone || org.email}</p>
+                          </div>
+                          <div>
+                            <button
+                              onClick={() => {
+                                // Use organization's location directly from User model
+                                if (org.latitude && org.longitude) {
+                                  setMapModal({
+                                    lat: org.latitude,
+                                    lon: org.longitude,
+                                    latDegrees: org.latDegrees,
+                                    latMinutes: org.latMinutes,
+                                    latSeconds: org.latSeconds,
+                                    lonDegrees: org.lonDegrees,
+                                    lonMinutes: org.lonMinutes,
+                                    lonSeconds: org.lonSeconds,
+                                    name: org.name,
+                                    city: org.city
+                                  });
+                                } else {
+                                  setMapModal({ query: `${org.name} ${org.city || ''}`.trim() });
+                                }
+                              }}
+                              className="ml-3 text-sm text-green-600 hover:underline"
+                            >
+                              View Map
+                            </button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                  {distanceKm !== null && (
+                    <div className="mt-3 text-sm text-gray-600">
+                      <strong>Distance:</strong> {distanceKm} km from you
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {role === "organization" && selectedEntry.matchedDonation && (
+                <div className="mt-4 space-y-4">
+                  <div className="grid grid-cols-2 gap-4 bg-gray-50 p-4 rounded-xl border border-gray-100">
+                    <div>
+                      <p className="text-xs text-gray-500 uppercase font-semibold">Donor</p>
+                      <p className="font-medium text-gray-800">{selectedEntry.matchedDonation.donor?.name || "Unknown Donor"}</p>
+                      {selectedEntry.status === "fulfilled" && (
+                        <p className="text-xs text-gray-500 mt-1">{selectedEntry.matchedDonation.donor?.phone || selectedEntry.matchedDonation.donor?.email || ""}</p>
+                      )}
+                    </div>
+                    <div>
+                      <p className="text-xs text-gray-500 uppercase font-semibold">Location</p>
+                      <p className="font-medium text-gray-800 text-sm">{selectedEntry.matchedDonation.donor?.city || "Not specified"}</p>
+                    </div>
+                    <div className="col-span-2">
+                      <p className="text-xs text-gray-500 uppercase font-semibold">Expiry</p>
+                      <p className="font-medium text-gray-800 text-sm">{new Date(selectedEntry.matchedDonation.expiryTime).toLocaleString()}</p>
+                    </div>
+                  </div>
+
+                  {distanceKm !== null && (
+                    <div className="bg-blue-50/50 border border-blue-100 p-3 rounded-xl flex items-center justify-between">
+                      <div className="flex items-center gap-2 text-blue-800">
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                        <span className="font-medium text-sm">Distance: {distanceKm} km from you</span>
+                      </div>
                       <button
                         onClick={() => {
-                          // Use organization's location directly from User model
-                          if (org.latitude && org.longitude) {
-                            setMapModal({
-                              lat: org.latitude,
-                              lon: org.longitude,
-                              latDegrees: org.latDegrees,
-                              latMinutes: org.latMinutes,
-                              latSeconds: org.latSeconds,
-                              lonDegrees: org.lonDegrees,
-                              lonMinutes: org.lonMinutes,
-                              lonSeconds: org.lonSeconds,
-                              name: org.name,
-                              city: org.city
-                            });
+                          const coords = selectedEntry.matchedDonation.location?.coordinates;
+                          if (coords && coords.length >= 2) {
+                            setMapModal({ lat: coords[1], lon: coords[0] });
                           } else {
-                            setMapModal({ query: `${org.name} ${org.city || ''}`.trim() });
+                            setMapModal({ query: selectedEntry.matchedDonation.donor?.city || '' });
                           }
                         }}
-                        className="bg-gray-100 text-gray-800 px-3 py-1 rounded-md text-sm"
+                        className="px-3 py-1.5 bg-blue-100 hover:bg-blue-200 text-blue-700 rounded-lg text-sm font-semibold transition"
                       >
                         Map
                       </button>
                     </div>
-                  ))}
-
-
-                {role === "donor" && entry.status === "available" && (!entry.requestedBy || entry.requestedBy.length === 0) && (
-                  <>
-                    <button
-                      onClick={() => navigate(`/donations/${entry._id}/edit`)}
-                      className="text-blue-500 hover:text-blue-700 text-sm mr-2"
-                      title="Edit donation"
-                    >
-                      ✏️
-                    </button>
-                    <button
-                      onClick={() => handleDeleteDonation(entry._id)}
-                      className="text-red-500 hover:text-red-700 text-sm"
-                      title="Delete donation"
-                    >
-                      🗑️
-                    </button>
-                  </>
-                )}
-                {role === "organization" &&
-                  entry.status === "reserved" && (
-                    <>
-                      <button
-                        onClick={() => handleComplete(entry._id)}
-                        className="bg-green-600 text-white px-3 py-1 rounded-md text-sm"
-                      >
-                        Complete
-                      </button>
-                      <button
-                        onClick={() => handleCancel(entry._id)}
-                        className="bg-red-500 text-white px-3 py-1 rounded-md text-sm"
-                      >
-                        Cancel
-                      </button>
-                    </>
                   )}
 
-                <button
-                  onClick={() => setSelectedEntry(entry)}
-                  className="bg-blue-500 text-white px-3 py-1 rounded-md text-sm"
-                >
-                  View Details
-                </button>
+                  <div>
+                    <h4 className="font-semibold text-gray-800 flex items-center gap-2 mb-2">
+                      <svg className="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path></svg>
+                      Items
+                    </h4>
+                    <ul className="space-y-2">
+                      {selectedEntry.matchedDonation.items?.map((item, i) => (
+                        <li key={i} className="flex justify-between items-center bg-white border border-gray-100 p-2.5 rounded-lg shadow-sm">
+                          <span className="font-medium text-gray-700">{item.name}</span>
+                          <span className="bg-green-50 text-green-700 font-bold px-2 py-1 rounded text-sm">{item.quantity} {item.unit}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                </div>
+              )}
 
-              </div>
-            </div>
-          ))}
-        </div>
-      )}
-
-      {/* Pagination */}
-      <div className="flex justify-center items-center gap-4 mt-10">
-        <button
-          disabled={page === 1}
-          onClick={() => setPage(prev => prev - 1)}
-          className="px-4 py-2 bg-gray-200 rounded disabled:opacity-50"
-        >
-          Prev
-        </button>
-
-        <span className="font-semibold">
-          Page {page} of {totalPages}
-        </span>
-
-        <button
-          disabled={page === totalPages}
-          onClick={() => setPage(prev => prev + 1)}
-          className="px-4 py-2 bg-gray-200 rounded disabled:opacity-50"
-        >
-          Next
-        </button>
-      </div>
-      {/* DELETE CONFIRMATION MODAL */}
-      {deleteModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 w-full max-w-md">
-            <h3 className="text-lg font-bold mb-4 text-red-600">Confirm Deletion</h3>
-            <p>This donation helps people in need. Consider completing it instead.</p>
-            <p className="mt-4">Are you sure you want to delete?</p>
-            <div className="mt-6 flex justify-end gap-3">
-              <button className="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300" onClick={cancelDelete}>Cancel</button>
-              <button className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700" onClick={confirmDelete}>Delete</button>
             </div>
           </div>
-        </div>
-      )}
+        )}
 
+        {/* MAP MODAL */}
+        {mapModal && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div className="bg-white rounded-xl p-4 w-full max-w-3xl max-h-[90vh] overflow-y-auto">
+              <div className="flex justify-between items-center mb-4">
+                <div>
+                  <h4 className="font-semibold text-lg">Location Details</h4>
+                  {mapModal.name && (
+                    <p className="text-sm text-gray-600">{mapModal.name} {mapModal.city ? `• ${mapModal.city}` : ''}</p>
+                  )}
+                </div>
+                <button onClick={() => setMapModal(null)} className="text-gray-500 text-2xl">×</button>
+              </div>
 
-      {/* DETAILS MODAL */}
-      {selectedEntry && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-2xl p-6 w-full max-w-2xl shadow-2xl relative overflow-y-auto max-h-[90vh]">
-
-            <button
-              onClick={() => setSelectedEntry(null)}
-              className="absolute top-4 right-4 text-gray-500 hover:text-red-500 text-xl"
-
-            >
-              ✕
-            </button>
-
-            <h3 className="text-2xl font-bold mb-4 text-gray-800">
-              Activity Details
-            </h3>
-
-            <span className={getStatusBadge(selectedEntry.status)}>
-              {selectedEntry.status.toUpperCase()}
-            </span>
-
-            {role === "donor" && (
-              <div className="mt-4 space-y-2">
-                <p><strong>Meal Type:</strong> {selectedEntry.mealType}</p>
-                <p><strong>Created At:</strong> {new Date(selectedEntry.createdAt).toLocaleString()}</p>
-                <p><strong>Expiry:</strong> {new Date(selectedEntry.expiryTime).toLocaleString()}</p>
-
-                <h4 className="font-semibold mt-3">Items</h4>
-                {selectedEntry.items?.map((item, i) => (
-                  <p key={i}>
-                    • {item.name} — {item.quantity} {item.unit}
-                  </p>
-                ))}
-
-                {/* Show organizations that requested or accepted this donation */}
-                {selectedEntry.acceptedBy && (
-                  <div className="mt-3">
-                    <h4 className="font-semibold">Accepted By</h4>
-                    {Array.isArray(selectedEntry.acceptedBy) ? (
-                      selectedEntry.acceptedBy.map((org) => (
-                        <div key={org._id} className="text-sm text-gray-700">
-                          <p className="font-medium">{org.name}</p>
-                          <p className="text-gray-500">{org.city} — {org.phone || org.email}</p>
-                        </div>
-                      ))
-                    ) : (
-                      <div className="text-sm text-gray-700">
-                        <p className="font-medium">{selectedEntry.acceptedBy.name}</p>
-                        <p className="text-gray-500">{selectedEntry.acceptedBy.city} — {selectedEntry.acceptedBy.phone || selectedEntry.acceptedBy.email}</p>
-                      </div>
+              {mapModal.lat && mapModal.lon ? (
+                <>
+                  {/* Location Coordinates Display */}
+                  <div className="mb-4 p-3 bg-gray-50 rounded-lg border border-gray-200">
+                    <p className="text-sm font-semibold text-gray-700 mb-2">Coordinates:</p>
+                    <p className="text-sm text-gray-800">
+                      <span className="font-medium">Decimal:</span> {mapModal.lat.toFixed(6)}, {mapModal.lon.toFixed(6)}
+                    </p>
+                    {mapModal.latDegrees && mapModal.latMinutes && mapModal.latSeconds && mapModal.lonDegrees && mapModal.lonMinutes && mapModal.lonSeconds && (
+                      <p className="text-sm text-gray-800 mt-1">
+                        <span className="font-medium">DMS:</span> {mapModal.latDegrees}° {mapModal.latMinutes}' {mapModal.latSeconds?.toFixed(2)}" , {mapModal.lonDegrees}° {mapModal.lonMinutes}' {mapModal.lonSeconds?.toFixed(2)}"
+                      </p>
                     )}
                   </div>
-                )}
 
-                {selectedEntry.requestedBy && selectedEntry.requestedBy.length > 0 && (
-                  <div className="mt-3">
-                    <h4 className="font-semibold">Requested By</h4>
-                    {selectedEntry.requestedBy.map((org) => (
-                      <div key={org._id} className="text-sm text-gray-700 flex items-center justify-between">
-                        <div>
-                          <p className="font-medium">{org.name}</p>
-                          <p className="text-gray-500">{org.city} — {org.phone || org.email}</p>
-                        </div>
-                        <div>
-                          <button
-                            onClick={() => {
-                              // Use organization's location directly from User model
-                              if (org.latitude && org.longitude) {
-                                setMapModal({
-                                  lat: org.latitude,
-                                  lon: org.longitude,
-                                  latDegrees: org.latDegrees,
-                                  latMinutes: org.latMinutes,
-                                  latSeconds: org.latSeconds,
-                                  lonDegrees: org.lonDegrees,
-                                  lonMinutes: org.lonMinutes,
-                                  lonSeconds: org.lonSeconds,
-                                  name: org.name,
-                                  city: org.city
-                                });
-                              } else {
-                                setMapModal({ query: `${org.name} ${org.city || ''}`.trim() });
-                              }
-                            }}
-                            className="ml-3 text-sm text-blue-600 hover:underline"
-                          >
-                            View Map
-                          </button>
-                        </div>
-                      </div>
-                    ))}
+                  {/* Map */}
+                  <div className="w-full h-72 mb-3 rounded-lg overflow-hidden">
+                    <iframe
+                      width="100%"
+                      height="100%"
+                      src={`https://maps.google.com/maps?q=${mapModal.lat},${mapModal.lon}&z=15&output=embed`}
+                      title="map"
+                    />
                   </div>
-                )}
-                {distanceKm !== null && (
-                  <div className="mt-3 text-sm text-gray-600">
-                    <strong>Distance:</strong> {distanceKm} km from you
-                  </div>
-                )}
-              </div>
-            )}
 
-            {role === "organization" && selectedEntry.matchedDonation && (
-              <div className="mt-4 space-y-2">
-                <p><strong>Donor:</strong> {selectedEntry.matchedDonation.donor?.name}</p>
-                <p><strong>City:</strong> {selectedEntry.matchedDonation.donor?.city}</p>
-                <p><strong>Expiry:</strong> {new Date(selectedEntry.matchedDonation.expiryTime).toLocaleString()}</p>
-
-                {distanceKm !== null && (
-                  <div className="mt-3 text-sm text-gray-600">
-                    <strong>Distance:</strong> {distanceKm} km from you
-                  </div>
-                )}
-
-                <div className="mt-3">
-                  <button
-                    onClick={() => {
-                      const coords = selectedEntry.matchedDonation.location?.coordinates;
-                      if (coords && coords.length >= 2) {
-                        setMapModal({ lat: coords[1], lon: coords[0] });
-                      } else {
-                        setMapModal({ query: selectedEntry.matchedDonation.donor?.city || '' });
-                      }
-                    }}
-                    className="text-sm text-blue-600 hover:underline"
+                  {/* Google Maps Link */}
+                  <a
+                    className="inline-block px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 text-sm font-semibold"
+                    href={`https://www.google.com/maps/search/?api=1&query=${mapModal.lat},${mapModal.lon}`}
+                    target="_blank"
+                    rel="noreferrer"
                   >
-                    View Donor Location
-                  </button>
-                </div>
-
-                <h4 className="font-semibold mt-3">Items</h4>
-                {selectedEntry.matchedDonation.items?.map((item, i) => (
-                  <p key={i}>
-                    • {item.name} — {item.quantity} {item.unit}
-                  </p>
-                ))}
-              </div>
-            )}
-
-          </div>
-        </div>
-      )}
-
-      {/* MAP MODAL */}
-      {mapModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-xl p-4 w-full max-w-3xl max-h-[90vh] overflow-y-auto">
-            <div className="flex justify-between items-center mb-4">
-              <div>
-                <h4 className="font-semibold text-lg">Location Details</h4>
-                {mapModal.name && (
-                  <p className="text-sm text-gray-600">{mapModal.name} {mapModal.city ? `• ${mapModal.city}` : ''}</p>
-                )}
-              </div>
-              <button onClick={() => setMapModal(null)} className="text-gray-500 text-2xl">×</button>
+                    📍 Open in Google Maps
+                  </a>
+                </>
+              ) : (
+                <>
+                  <div className="w-full h-72 mb-3 rounded-lg overflow-hidden">
+                    <iframe
+                      width="100%"
+                      height="100%"
+                      src={`https://maps.google.com/maps?q=${encodeURIComponent(mapModal.query)}&z=12&output=embed`}
+                      title="map"
+                    />
+                  </div>
+                  <a
+                    className="inline-block px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 text-sm font-semibold"
+                    href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(mapModal.query)}`}
+                    target="_blank"
+                    rel="noreferrer"
+                  >
+                    📍 Open in Google Maps
+                  </a>
+                </>
+              )}
             </div>
-
-            {mapModal.lat && mapModal.lon ? (
-              <>
-                {/* Location Coordinates Display */}
-                <div className="mb-4 p-3 bg-gray-50 rounded-lg border border-gray-200">
-                  <p className="text-sm font-semibold text-gray-700 mb-2">Coordinates:</p>
-                  <p className="text-sm text-gray-800">
-                    <span className="font-medium">Decimal:</span> {mapModal.lat.toFixed(6)}, {mapModal.lon.toFixed(6)}
-                  </p>
-                  {mapModal.latDegrees && mapModal.latMinutes && mapModal.latSeconds && mapModal.lonDegrees && mapModal.lonMinutes && mapModal.lonSeconds && (
-                    <p className="text-sm text-gray-800 mt-1">
-                      <span className="font-medium">DMS:</span> {mapModal.latDegrees}° {mapModal.latMinutes}' {mapModal.latSeconds?.toFixed(2)}" , {mapModal.lonDegrees}° {mapModal.lonMinutes}' {mapModal.lonSeconds?.toFixed(2)}"
-                    </p>
-                  )}
-                </div>
-
-                {/* Map */}
-                <div className="w-full h-72 mb-3 rounded-lg overflow-hidden">
-                  <iframe
-                    width="100%"
-                    height="100%"
-                    src={`https://maps.google.com/maps?q=${mapModal.lat},${mapModal.lon}&z=15&output=embed`}
-                    title="map"
-                  />
-                </div>
-
-                {/* Google Maps Link */}
-                <a
-                  className="inline-block px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm font-semibold"
-                  href={`https://www.google.com/maps/search/?api=1&query=${mapModal.lat},${mapModal.lon}`}
-                  target="_blank"
-                  rel="noreferrer"
-                >
-                  📍 Open in Google Maps
-                </a>
-              </>
-            ) : (
-              <>
-                <div className="w-full h-72 mb-3 rounded-lg overflow-hidden">
-                  <iframe
-                    width="100%"
-                    height="100%"
-                    src={`https://maps.google.com/maps?q=${encodeURIComponent(mapModal.query)}&z=12&output=embed`}
-                    title="map"
-                  />
-                </div>
-                <a
-                  className="inline-block px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm font-semibold"
-                  href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(mapModal.query)}`}
-                  target="_blank"
-                  rel="noreferrer"
-                >
-                  📍 Open in Google Maps
-                </a>
-              </>
-            )}
           </div>
-        </div>
-      )}
+        )}
 
-    </div>
+      </div>
+    </div >
   );
 }
 

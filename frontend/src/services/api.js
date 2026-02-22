@@ -8,7 +8,12 @@ const API = axios.create({
 API.interceptors.request.use(
     (req) => {
         // increment loading counter for each outgoing request
-        show();
+        const url = req.url || '';
+        let type = 'default';
+        if (url.includes('/match/request')) {
+            type = 'connecting';
+        }
+        show({ type });
         const token = localStorage.getItem("token");
         if (token) {
             req.headers.Authorization = `Bearer ${token}`;
