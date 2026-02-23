@@ -111,7 +111,7 @@ function Navbar() {
                 <Link to="/login" className="px-4 py-2 font-medium text-gray-700 hover:text-green-600 transition-colors">
                   Login
                 </Link>
-                <Link to="/register" className="px-5 py-2.5 font-medium text-white bg-green-600 hover:bg-green-700 rounded-full shadow-lg shadow-green-600/30 hover:shadow-green-600/50 transition-all duration-300 hover:-translate-y-0.5">
+                <Link to="/register" className="px-5 py-2.5 font-bold text-white bg-gradient-to-r from-green-600 to-emerald-500 hover:from-green-500 hover:to-emerald-400 rounded-full shadow-[0_8px_20px_-6px_rgba(16,185,129,0.5)] hover:shadow-[0_12px_25px_-8px_rgba(16,185,129,0.6)] transition-all duration-300 transform hover:-translate-y-0.5">
                   Register
                 </Link>
               </div>

@@ -48,8 +48,10 @@ function Login() {
 
         {/* Header */}
         <div className="flex flex-col items-center px-6 sm:px-8 pt-8 pb-4 shrink-0">
-          <div className="w-14 h-14 flex items-center justify-center bg-gradient-to-br from-green-600 to-emerald-500 rounded-2xl shadow-lg text-2xl mb-4 select-none">
-            🍱
+          <div className="w-14 h-14 flex items-center justify-center bg-gradient-to-br from-green-600 to-emerald-500 rounded-2xl shadow-lg mb-4 text-white">
+            <svg className="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1" />
+            </svg>
           </div>
           <h1 className="text-2xl font-extrabold text-gray-800 tracking-tight text-center">Welcome Back!</h1>
           <p className="text-sm text-gray-400 mt-1 text-center">Login to continue ending food waste</p>
@@ -113,7 +115,7 @@ function Login() {
               type="submit"
               className="w-full flex items-center justify-center gap-2 py-2.5 sm:py-3 rounded-xl bg-gradient-to-r from-green-600 to-emerald-500 hover:from-green-700 hover:to-emerald-600 text-white font-bold text-xs sm:text-sm shadow-lg transition"
             >
-              🚀 Login to Dashboard
+              Login to Dashboard
             </button>
           </div>
 

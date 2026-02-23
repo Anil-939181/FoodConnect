@@ -187,16 +187,19 @@ function Matches() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 pb-12">
+    <div className="min-h-screen bg-gray-50 pb-12 w-full">
       {/* 🌟 Premium Header */}
-      <div className="bg-gradient-to-br from-green-600 to-emerald-800 text-white pb-20 pt-10 md:pt-12 px-4 shadow-inner mb-6">
-        <div className="max-w-7xl mx-auto">
-          <h2 className="text-4xl md:text-5xl font-extrabold mb-4 tracking-tight">
-            Discover Donations
-          </h2>
-          <p className="text-green-100 text-lg max-w-2xl font-medium">
-            Find and request surplus food available in your community. Use the filters below to narrow down your search perfectly.
-          </p>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 pt-6">
+        <div className="bg-gradient-to-br from-green-600 to-emerald-800 text-white pb-20 pt-10 md:pt-12 px-6 sm:px-10 shadow-xl rounded-[2rem] mb-6 relative overflow-hidden">
+          <div className="absolute top-0 right-0 w-64 h-64 bg-white opacity-5 rounded-full filter blur-3xl transform translate-x-1/2 -translate-y-1/2 z-0"></div>
+          <div className="relative z-10">
+            <h2 className="text-4xl md:text-5xl font-extrabold mb-4 tracking-tight">
+              Discover Donations
+            </h2>
+            <p className="text-green-100 text-lg max-w-2xl font-medium">
+              Find and request surplus food available in your community. Use the filters below to narrow down your search perfectly.
+            </p>
+          </div>
         </div>
       </div>
 

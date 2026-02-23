@@ -175,7 +175,7 @@ function MyActivity() {
     const base = "px-3 py-1 text-xs font-semibold rounded-full ";
     const colors = {
       available: "bg-gray-200 text-gray-700",
-      requested: "bg-green-100 text-green-600",
+      requested: "bg-blue-100 text-blue-600",
       reserved: "bg-orange-100 text-orange-600",
       completed: "bg-green-100 text-green-600",
       fulfilled: "bg-green-100 text-green-600",
@@ -211,16 +211,19 @@ function MyActivity() {
     });
 
   return (
-    <div className="min-h-screen bg-gray-50 pb-12">
+    <div className="min-h-screen bg-gray-50 pb-12 w-full">
       {/* 🌟 Premium Header */}
-      <div className="bg-gradient-to-tr from-green-700 to-emerald-900 text-white pb-20 pt-10 md:pt-12 px-4 shadow-inner mb-6">
-        <div className="max-w-7xl mx-auto">
-          <h2 className="text-4xl md:text-5xl font-extrabold mb-4 tracking-tight">
-            My Activity
-          </h2>
-          <p className="text-green-100 text-lg max-w-2xl font-medium">
-            Track your donations, monitor ongoing requests, and review your past contributions to the community.
-          </p>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 pt-6">
+        <div className="bg-gradient-to-tr from-green-700 to-emerald-900 text-white pb-20 pt-10 md:pt-12 px-6 sm:px-10 shadow-xl rounded-[2rem] mb-6 relative overflow-hidden">
+          <div className="absolute top-0 right-0 w-64 h-64 bg-white opacity-5 rounded-full filter blur-3xl transform translate-x-1/2 -translate-y-1/2 z-0"></div>
+          <div className="relative z-10">
+            <h2 className="text-4xl md:text-5xl font-extrabold mb-4 tracking-tight">
+              My Activity
+            </h2>
+            <p className="text-green-100 text-lg max-w-2xl font-medium">
+              Track your donations, monitor ongoing requests, and review your past contributions to the community.
+            </p>
+          </div>
         </div>
       </div>
 
@@ -469,7 +472,7 @@ function MyActivity() {
                           <div key={org._id} className="bg-gray-50 border border-gray-200 rounded-xl p-4 flex flex-col sm:flex-row gap-3 items-start sm:items-center justify-between">
                             <div>
                               <p className="font-bold text-gray-800">{org.name}</p>
-                              {org.city && <p className="text-xs text-gray-500">📍 {org.city}</p>}
+                              {org.city && <p className="text-xs text-gray-500 flex items-center gap-1"><svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" /></svg> {org.city}</p>}
                             </div>
                             <div className="flex w-full sm:w-auto gap-2">
                               <button
@@ -516,7 +519,7 @@ function MyActivity() {
                         selectedEntry.acceptedBy.map((org) => (
                           <div key={org._id} className="bg-blue-50/50 border border-blue-100 p-3 rounded-xl mb-2">
                             <p className="font-bold text-blue-900">{org.name}</p>
-                            <p className="text-sm text-blue-700">{org.city} {org.phone ? `— 📞 ${org.phone}` : ""} {org.email ? `— ✉️ ${org.email}` : ""}</p>
+                            <p className="text-sm text-blue-700">{org.city} {org.phone ? `— ${org.phone}` : ""} {org.email ? `— ${org.email}` : ""}</p>
                           </div>
                         ))
                       ) : (
@@ -684,7 +687,7 @@ function MyActivity() {
                     target="_blank"
                     rel="noreferrer"
                   >
-                    📍 Open in Google Maps
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" /></svg> Open in Google Maps
                   </a>
                 </>
               ) : (
@@ -703,7 +706,7 @@ function MyActivity() {
                     target="_blank"
                     rel="noreferrer"
                   >
-                    📍 Open in Google Maps
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" /></svg> Open in Google Maps
                   </a>
                 </>
               )}

@@ -155,14 +155,17 @@ function Dashboard() {
     return (
       <div className="min-h-screen bg-gray-50 pb-12 w-full">
         {/* 🌟 Premium Header */}
-        <div className="bg-gradient-to-tr from-green-700 to-emerald-900 text-white pb-24 pt-10 md:pt-12 px-6 shadow-inner mb-6">
-          <div className="max-w-7xl mx-auto">
-            <h1 className="text-4xl md:text-5xl font-extrabold mb-4 tracking-tight">
-              Dashboard
-            </h1>
-            <p className="text-green-100 text-lg max-w-2xl font-medium">
-              Donation overview and recent activity
-            </p>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 pt-6">
+          <div className="bg-gradient-to-tr from-green-700 to-emerald-900 text-white pb-24 pt-10 md:pt-12 px-6 sm:px-10 shadow-xl rounded-[2rem] relative overflow-hidden">
+            <div className="absolute top-0 right-0 w-64 h-64 bg-white opacity-5 rounded-full filter blur-3xl transform translate-x-1/2 -translate-y-1/2 z-0"></div>
+            <div className="relative z-10">
+              <h1 className="text-4xl md:text-5xl font-extrabold mb-4 tracking-tight">
+                Dashboard
+              </h1>
+              <p className="text-green-100 text-lg max-w-2xl font-medium">
+                Donation overview and recent activity
+              </p>
+            </div>
           </div>
         </div>
 
@@ -293,14 +296,17 @@ function Dashboard() {
     return (
       <div className="min-h-screen bg-gray-50 pb-12 w-full">
         {/* 🌟 Premium Header */}
-        <div className="bg-gradient-to-tr from-green-700 to-emerald-900 text-white pb-24 pt-10 md:pt-12 px-6 shadow-inner mb-6">
-          <div className="max-w-7xl mx-auto">
-            <h1 className="text-4xl md:text-5xl font-extrabold mb-4 tracking-tight">
-              Welcome Back! 👋
-            </h1>
-            <p className="text-green-100 text-lg max-w-2xl font-medium">
-              Track your food requests, manage collections, and coordinate with donors.
-            </p>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 pt-6">
+          <div className="bg-gradient-to-tr from-green-700 to-emerald-900 text-white pb-24 pt-10 md:pt-12 px-6 sm:px-10 shadow-xl rounded-[2rem] relative overflow-hidden">
+            <div className="absolute top-0 right-0 w-64 h-64 bg-white opacity-5 rounded-full filter blur-3xl transform translate-x-1/2 -translate-y-1/2 z-0"></div>
+            <div className="relative z-10">
+              <h1 className="text-4xl md:text-5xl font-extrabold mb-4 tracking-tight">
+                Welcome Back!
+              </h1>
+              <p className="text-green-100 text-lg max-w-2xl font-medium">
+                Track your food requests, manage collections, and coordinate with donors.
+              </p>
+            </div>
           </div>
         </div>
 

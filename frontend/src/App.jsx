@@ -48,73 +48,64 @@ function App() {
         <Route
           path="/dashboard"
           element={
-            <div className="max-w-7xl mx-auto p-6 pt-24">
-              <ProtectedRoute>
-                <Dashboard />
-              </ProtectedRoute>
-            </div>
+            <ProtectedRoute>
+              <Dashboard />
+            </ProtectedRoute>
           }
         />
 
         <Route
           path="/donate"
           element={
-            <div className="max-w-7xl mx-auto p-6 pt-24">
-              <ProtectedRoute>
-                <Donate />
-              </ProtectedRoute>
-            </div>
+            <ProtectedRoute>
+              <Donate />
+            </ProtectedRoute>
           }
         />
 
         <Route
           path="/request"
           element={
-            <div className="max-w-7xl mx-auto p-6 pt-24">
-              <ProtectedRoute>
-                <Request />
-              </ProtectedRoute>
-            </div>
+            <ProtectedRoute>
+              <Request />
+            </ProtectedRoute>
           }
         />
 
         <Route
           path="/my-activity"
           element={
-            <div className="max-w-7xl mx-auto p-6 pt-24">
-              <ProtectedRoute>
-                <MyActivity />
-              </ProtectedRoute>
-            </div>
+            <ProtectedRoute>
+              <MyActivity />
+            </ProtectedRoute>
           }
         />
         <Route
           path="/account"
           element={
-            <div className="max-w-7xl mx-auto p-6 pt-24">
-              <ProtectedRoute>
-                <Account />
-              </ProtectedRoute>
-            </div>
+            <ProtectedRoute>
+              <Account />
+            </ProtectedRoute>
           }
         />
         <Route
           path="/donations/:id/edit"
           element={
-            <div className="max-w-7xl mx-auto p-6 pt-24">
+            <div className="max-w-7xl mx-auto p-6 pt-8">
               <ProtectedRoute>
                 <EditDonation />
               </ProtectedRoute>
             </div>
           }
         />
-        <Route path="/matches" element={
-          <div className="max-w-7xl mx-auto p-6 pt-24">
+        <Route
+          path="/matches"
+          element={
             <ProtectedRoute>
               <Matches />
             </ProtectedRoute>
-          </div>
-        } />
+          }
+        />
       </Routes>
     </div>
 

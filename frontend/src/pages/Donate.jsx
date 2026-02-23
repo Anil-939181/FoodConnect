@@ -81,8 +81,10 @@ function Donate() {
 
         {/* Header */}
         <div className="flex flex-col items-center px-6 sm:px-8 pt-8 pb-4 shrink-0">
-          <div className="w-14 h-14 flex items-center justify-center bg-gradient-to-br from-green-600 to-emerald-500 rounded-2xl shadow-lg text-2xl mb-4 select-none">
-            🍲
+          <div className="w-14 h-14 flex items-center justify-center bg-gradient-to-br from-green-600 to-emerald-500 rounded-2xl shadow-lg mb-4 text-white">
+            <svg className="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v13m0-13V6a2 2 0 112 2h-2zm0 0V5.5A2.5 2.5 0 109.5 8H12zm-7 4h14M5 12a2 2 0 110-4h14a2 2 0 110 4M5 12v7a2 2 0 002 2h10a2 2 0 002-2v-7" />
+            </svg>
           </div>
           <h1 className="text-2xl font-extrabold text-gray-800 tracking-tight text-center">Donate Food</h1>
           <p className="text-sm text-gray-400 mt-1 text-center">Share your surplus meals with those in need</p>
@@ -201,7 +203,7 @@ function Donate() {
               disabled={loading}
               className="w-full flex items-center justify-center gap-2 py-2.5 sm:py-3 rounded-xl bg-gradient-to-r from-green-600 to-emerald-500 hover:from-green-700 hover:to-emerald-600 text-white font-bold text-xs sm:text-sm shadow-lg transition disabled:opacity-70 disabled:cursor-not-allowed"
             >
-              {loading ? "⏳ Submitting..." : "🎉 Create Donation"}
+              {loading ? "Submitting..." : "Create Donation"}
             </button>
           </div>
 

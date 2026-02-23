@@ -557,7 +557,7 @@ function Account() {
                   {previewImage ? (
                     <img src={previewImage} alt="Preview" className="w-full h-full object-cover" />
                   ) : (
-                    <span className="text-4xl text-gray-400">👤</span>
+                    <svg className="w-12 h-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>
                   )}
                   <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
                     <span className="text-white text-xs font-bold">Change</span>
@@ -619,13 +619,15 @@ function Account() {
                     <p className="text-xs text-gray-500">Pick your exact location to help drivers find you.</p>
                   </div>
                   <button type="button" onClick={() => setShowMapPicker(true)} className="px-4 py-2 rounded-lg text-sm font-bold bg-green-600 hover:bg-green-700 text-white shadow-md transition flex items-center gap-2">
-                    🗺️ Pick from Map
+                    Pick from Map
                   </button>
                 </div>
 
                 {/* Selected Location Preview */}
                 <div className="bg-white border rounded-xl p-4 flex items-center gap-4">
-                  <div className="w-10 h-10 rounded-full bg-blue-50 flex items-center justify-center text-blue-600 shrink-0">📍</div>
+                  <div className="w-10 h-10 rounded-full bg-blue-50 flex items-center justify-center text-blue-600 shrink-0">
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+                  </div>
                   {latitude && longitude ? (
                     <div>
                       <p className="text-sm font-bold text-gray-800">Coordinates Selected</p>
@@ -639,7 +641,7 @@ function Account() {
 
               <div className="flex gap-4 pt-4 border-t border-gray-100">
                 <button type="submit" disabled={loading} className="flex-1 bg-green-600 text-white py-3 rounded-xl font-bold hover:bg-green-700 transition shadow-lg shadow-green-600/20 text-sm">
-                  {loading ? "⏳ Saving..." : "Save Changes"}
+                  {loading ? "Saving..." : "Save Changes"}
                 </button>
                 <button type="button" onClick={handleCancelEdit} className="w-1/3 min-w-[100px] bg-gray-100 text-gray-600 py-3 rounded-xl font-bold hover:bg-gray-200 transition text-sm">
                   Cancel
@@ -692,7 +694,7 @@ function Account() {
                   className="absolute inset-0 z-0"
                 />
                 <div className="absolute top-2 left-1/2 -translate-x-1/2 z-10 bg-white/90 backdrop-blur px-4 py-2 rounded-full shadow-md pointer-events-none border border-gray-100">
-                  <p className="text-xs font-semibold text-gray-700">Click anywhere to drop a pin 📍</p>
+                  <p className="text-xs font-semibold text-gray-700">Click anywhere to drop a pin</p>
                 </div>
               </div>
 
@@ -716,7 +718,7 @@ function Account() {
                         }}
                         className="p-3 bg-gray-50 border border-gray-100 rounded-xl hover:bg-blue-50 hover:border-blue-200 cursor-pointer transition flex items-start gap-3"
                       >
-                        <span className="text-lg">📍</span>
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
                         <div className="flex-1 text-xs">
                           <p className="font-bold text-gray-800 line-clamp-1">{result.name}</p>
                           <p className="text-gray-500 font-mono mt-0.5">{parseFloat(result.lat).toFixed(3)}, {parseFloat(result.lon).toFixed(3)}</p>

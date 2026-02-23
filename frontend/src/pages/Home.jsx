@@ -1,5 +1,27 @@
 import { Link } from "react-router-dom";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
+
+// Custom hook to detect when an element enters the viewport
+function useIntersectionObserver(options = {}) {
+  const [isIntersecting, setIsIntersecting] = useState(false);
+  const elementRef = useRef(null);
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(([entry]) => {
+      if (entry.isIntersecting) {
+        setIsIntersecting(true);
+        if (elementRef.current) observer.unobserve(elementRef.current);
+      }
+    }, { threshold: 0.1, ...options });
+
+    if (elementRef.current) observer.observe(elementRef.current);
+    return () => {
+      if (elementRef.current) observer.unobserve(elementRef.current);
+    };
+  }, [options]);
+
+  return [elementRef, isIntersecting];
+}
 
 const FlowAnimation = () => {
   const [step, setStep] = useState(0);
@@ -68,7 +90,7 @@ const FlowAnimation = () => {
             step >= 1 && step <= 4 ? 'left-1/2 -translate-x-1/2 opacity-100 scale-110 md:scale-125' :
               'left-12 md:left-20 opacity-0'}
         `}>
-          <span className="text-[10px] md:text-xs">🍱</span>
+          <svg className="w-3 h-3 md:w-5 md:h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path></svg>
         </div>
 
 
@@ -146,6 +168,10 @@ function Home() {
   const role = localStorage.getItem("role");
   const [isVisible, setIsVisible] = useState(false);
 
+  // Intersection observers for section animations
+  const [howItWorksRef, howItWorksVisible] = useIntersectionObserver();
+  const [featuresRef, featuresVisible] = useIntersectionObserver();
+
   useEffect(() => {
     setIsVisible(true);
   }, []);
@@ -153,7 +179,7 @@ function Home() {
   return (
     <div className="min-h-screen bg-gray-50 font-sans overflow-x-hidden">
 
-      {/* 🌟 PREMIUM HERO SECTION (Asymmetric Layout) */}
+      {/* 🌟 PREMIUM HERO SECTION (Asymmetric  Layout) */}
       <section className="relative pt-8 pb-20 lg:pt-12 lg:pb-28 overflow-hidden bg-white">
         {/* Abstract Background Shapes */}
         <div className="absolute top-0 right-0 w-1/2 h-full bg-green-50 rounded-l-[100px] opacity-50 z-0 hidden lg:block"></div>
@@ -164,7 +190,7 @@ function Home() {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-8 items-start pt-0 lg:pt-0">
 
             {/* Left Column: Typography & CTAs */}
-            <div className={`transition-all duration-1000 transform ${isVisible ? 'translate-x-0 opacity-100' : '-translate-x-10 opacity-0'} max-w-2xl`}>
+            <div className={`transition-all duration-1000 transform ${isVisible ? 'translate-y-0 opacity-100' : 'translate-y-10 opacity-0'} max-w-2xl`}>
               {!token ? (
                 <>
                   <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-green-50 text-green-700 font-bold text-sm mb-6 border border-green-100 shadow-sm uppercase tracking-wider">
@@ -265,7 +291,7 @@ function Home() {
             </div>
 
             {/* Right Column: Visual Composition */}
-            <div className={`hidden mt-12 lg:mt-0 lg:flex justify-center transition-all duration-1000 transform ${isVisible ? 'translate-x-0 opacity-100' : 'translate-x-10 opacity-0'}`}>
+            <div className={`hidden mt-12 lg:mt-0 lg:flex justify-center transition-all duration-1000 transform ${isVisible ? 'translate-y-0 opacity-100' : 'translate-y-10 opacity-0'}`}>
               <div className="relative w-full max-w-md h-[500px]">
 
                 {role === "organization" ? (
@@ -284,7 +310,7 @@ function Home() {
                     <div className="absolute bottom-10 left-0 w-72 h-64 bg-white rounded-3xl shadow-2xl p-6 border border-gray-100 transform -rotate-3 hover:rotate-0 transition-transform duration-500 z-20 flex flex-col justify-between">
                       <div className="flex items-center gap-4 border-b border-gray-100 pb-4">
                         <div className="w-12 h-12 bg-green-100 text-green-600 rounded-full flex items-center justify-center">
-                          <span className="text-2xl">🤝</span>
+                          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
                         </div>
                         <div>
                           <h4 className="font-bold text-gray-900">Food Secured!</h4>
@@ -312,7 +338,7 @@ function Home() {
                     <div className="absolute bottom-10 left-0 w-72 h-64 bg-white rounded-3xl shadow-2xl p-6 border border-gray-100 transform -rotate-3 hover:rotate-0 transition-transform duration-500 z-20 flex flex-col justify-between">
                       <div className="flex items-center gap-4 border-b border-gray-100 pb-4">
                         <div className="w-12 h-12 bg-teal-100 text-teal-600 rounded-full flex items-center justify-center">
-                          <span className="text-2xl">🍲</span>
+                          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 15.546c-.523 0-1.046.151-1.5.454a2.704 2.704 0 01-3 0 2.704 2.704 0 00-3 0 2.704 2.704 0 01-3 0 2.704 2.704 0 00-3 0 2.704 2.704 0 01-3 0 2.701 2.701 0 00-1.5-.454M9 6v2m3-2v2m3-2v2M9 3h.01M12 3h.01M15 3h.01M21 21v-7a2 2 0 00-2-2H5a2 2 0 00-2 2v7h18zm-3-9v-2a2 2 0 00-2-2H8a2 2 0 00-2 2v2h12z"></path></svg>
                         </div>
                         <div>
                           <h4 className="font-bold text-gray-900">Community Kitchen</h4>
@@ -334,26 +360,31 @@ function Home() {
       </section>
 
       {/* 🤝 DYNAMIC ANIMATION SECTION (How it Works) */}
-      <section className="py-8 md:py-16 px-4 sm:px-6">
-        <div className="max-w-7xl mx-auto bg-gray-900 text-white rounded-[2rem] md:rounded-[3rem] py-12 md:py-16 shadow-2xl relative overflow-hidden">
-          <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAiIGhlaWdodD0iMjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGNpcmNsZSBjeD0iMSIgY3k9IjEiIHI9IjEiIGZpbGw9InJnYmEoMjU1LDI1NSwyNTUsMC4wNSkiLz48L3N2Zz4=')] opacity-50 z-0"></div>
+      <section ref={howItWorksRef} className="py-8 md:py-16 px-4 sm:px-6">
+        <div className={`max-w-7xl mx-auto bg-gray-900 text-white rounded-[2rem] md:rounded-[3rem] py-12 md:py-16 shadow-2xl relative overflow-hidden transition-all duration-1000 transform ${howItWorksVisible ? 'translate-y-0 opacity-100' : 'translate-y-16 opacity-0'}`}>
+          {/* Background pattern and decorative elements to reduce empty space feel */}
+          <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAiIGhlaWdodD0iMjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGNpcmNsZSBjeD0iMSIgY3k9IjEiIHI9IjEiIGZpbGw9InJnYmEoMjU1LDI1NSwyNTUsMC4wNSkiLz48L3N2Z2E=')] opacity-50 z-0"></div>
+          <div className="absolute top-10 left-10 w-24 h-24 bg-green-500 rounded-full mix-blend-screen filter blur-[50px] opacity-20 hidden md:block"></div>
+          <div className="absolute bottom-10 right-10 w-32 h-32 bg-teal-500 rounded-full mix-blend-screen filter blur-[60px] opacity-20 hidden md:block"></div>
 
           <div className="relative z-10 px-2 sm:px-6">
-            <div className="text-center mb-8 flex flex-col items-center">
+            <div className={`text-center mb-10 flex flex-col items-center transition-all duration-1000 delay-300 transform ${howItWorksVisible ? 'translate-y-0 opacity-100' : 'translate-y-10 opacity-0'}`}>
               <span className="text-green-400 font-bold tracking-widest uppercase text-sm mb-2 block">The Process</span>
               <h2 className="text-3xl md:text-4xl font-black tracking-tight">How the Platform Works</h2>
-              <p className="text-gray-400 mt-3 text-base md:text-lg font-medium max-w-2xl px-4">Watch the ecosystem in real-time as we seamlessly connect surplus food with local organizations.</p>
+              <p className="text-gray-400 mt-4 text-base md:text-lg font-medium max-w-2xl px-4">Watch the ecosystem in real-time as we seamlessly connect surplus food with local organizations.</p>
             </div>
 
-            <FlowAnimation />
+            <div className={`transition-all duration-1000 delay-500 transform ${howItWorksVisible ? 'translate-y-0 opacity-100' : 'translate-y-10 opacity-0'}`}>
+              <FlowAnimation />
+            </div>
           </div>
         </div>
       </section>
 
       {/* 🚀 BENTO BOX FEATURES SECTION */}
-      <section className="py-16 lg:py-32 bg-gray-50">
+      <section ref={featuresRef} className="py-16 lg:py-32 bg-gray-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6">
-          <div className="mb-12 lg:mb-16 md:flex md:justify-between md:items-end">
+          <div className={`mb-12 lg:mb-16 md:flex md:justify-between md:items-end transition-all duration-1000 transform ${featuresVisible ? 'translate-y-0 opacity-100' : 'translate-y-16 opacity-0'}`}>
             <div className="max-w-2xl">
               <span className="text-green-600 font-bold tracking-widest uppercase text-sm mb-2 block">Our Mission</span>
               <h2 className="text-4xl md:text-5xl lg:text-6xl font-black text-gray-900 tracking-tight">Zero Waste.<br />Zero Hunger.</h2>
@@ -365,38 +396,38 @@ function Home() {
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4 lg:gap-6">
 
             {/* Large Card 1 */}
-            <div className="md:col-span-2 md:row-span-2 bg-white rounded-[2rem] lg:rounded-[2.5rem] p-8 lg:p-12 shadow-sm border border-gray-200 hover:shadow-xl transition-all duration-300 relative overflow-hidden group">
+            <div className={`md:col-span-2 md:row-span-2 bg-white rounded-[2rem] lg:rounded-[2.5rem] p-8 lg:p-12 shadow-sm border border-gray-200 hover:shadow-xl transition-all duration-1000 transform delay-100 relative overflow-hidden group ${featuresVisible ? 'translate-y-0 opacity-100' : 'translate-y-16 opacity-0'}`}>
               <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-bl from-green-50 to-white rounded-bl-full -z-10 transition-transform duration-700 group-hover:scale-110"></div>
               <div className="w-16 h-16 bg-green-100 text-green-600 rounded-2xl flex items-center justify-center mb-6 lg:mb-8 shadow-inner">
-                <span className="text-3xl">🤝</span>
+                <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
               </div>
               <h3 className="text-2xl lg:text-3xl font-extrabold text-gray-900 mb-4 tracking-tight">Urgent Food Matching</h3>
               <p className="text-gray-600 text-base lg:text-lg leading-relaxed max-w-md">Surplus food expires quickly. Our system instantly alerts the nearest registered shelters and food banks the moment you post a donation, ensuring the food is picked up before it goes bad.</p>
             </div>
 
             {/* Small Card 1 */}
-            <div className="md:col-span-2 bg-gray-900 rounded-[2rem] lg:rounded-[2.5rem] p-8 lg:p-10 shadow-xl text-white relative overflow-hidden group">
+            <div className={`md:col-span-2 bg-gray-900 rounded-[2rem] lg:rounded-[2.5rem] p-8 lg:p-10 shadow-xl text-white relative overflow-hidden group transition-all duration-1000 transform delay-300 ${featuresVisible ? 'translate-y-0 opacity-100' : 'translate-y-16 opacity-0'}`}>
               <div className="absolute -right-10 -top-10 w-40 h-40 bg-teal-500 rounded-full opacity-20 blur-2xl group-hover:bg-teal-400 transition-colors duration-500"></div>
               <div className="w-12 h-12 bg-gray-800 text-teal-400 rounded-xl flex items-center justify-center mb-6 border border-gray-700">
-                <span className="text-2xl opacity-90">🍲</span>
+                <svg className="w-6 h-6 opacity-90" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 15.546c-.523 0-1.046.151-1.5.454a2.704 2.704 0 01-3 0 2.704 2.704 0 00-3 0 2.704 2.704 0 01-3 0 2.704 2.704 0 00-3 0 2.704 2.704 0 01-3 0 2.701 2.701 0 00-1.5-.454M9 6v2m3-2v2m3-2v2M9 3h.01M12 3h.01M15 3h.01M21 21v-7a2 2 0 00-2-2H5a2 2 0 00-2 2v7h18zm-3-9v-2a2 2 0 00-2-2H8a2 2 0 00-2 2v2h12z"></path></svg>
               </div>
               <h3 className="text-xl lg:text-2xl font-bold mb-3 tracking-tight">Feed Real People</h3>
               <p className="text-gray-400 text-sm lg:text-base leading-relaxed">Your excess restaurant inventory, event catering leftovers, or surplus groceries directly stock the pantries of verified local charities.</p>
             </div>
 
             {/* Small Card 2 */}
-            <div className="md:col-span-1 bg-gradient-to-br from-teal-50 to-emerald-50 rounded-[2rem] lg:rounded-[2.5rem] p-6 lg:p-8 shadow-sm border border-teal-100 hover:shadow-md transition-shadow duration-300 group">
+            <div className={`md:col-span-1 bg-gradient-to-br from-teal-50 to-emerald-50 rounded-[2rem] lg:rounded-[2.5rem] p-6 lg:p-8 shadow-sm border border-teal-100 hover:shadow-md transition-all duration-1000 transform delay-500 group ${featuresVisible ? 'translate-y-0 opacity-100' : 'translate-y-16 opacity-0'}`}>
               <div className="w-12 h-12 bg-white text-teal-600 rounded-xl flex items-center justify-center mb-6 shadow-sm group-hover:scale-110 transition-transform duration-300">
-                <span className="text-xl">📍</span>
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
               </div>
               <h3 className="text-lg lg:text-xl font-bold text-gray-900 mb-2 tracking-tight">Local Map View</h3>
               <p className="text-gray-600 text-sm leading-relaxed">See nearby hungry communities.</p>
             </div>
 
             {/* Small Card 3 */}
-            <div className="md:col-span-1 bg-white rounded-[2rem] lg:rounded-[2.5rem] p-6 lg:p-8 shadow-sm border border-gray-200 hover:shadow-md transition-shadow duration-300 group">
+            <div className={`md:col-span-1 bg-white rounded-[2rem] lg:rounded-[2.5rem] p-6 lg:p-8 shadow-sm border border-gray-200 hover:shadow-md transition-all duration-1000 transform delay-700 group ${featuresVisible ? 'translate-y-0 opacity-100' : 'translate-y-16 opacity-0'}`}>
               <div className="w-12 h-12 bg-purple-50 text-purple-600 rounded-xl flex items-center justify-center mb-6 border border-purple-100 group-hover:scale-110 transition-transform duration-300">
-                <span className="text-xl">📊</span>
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
               </div>
               <h3 className="text-lg lg:text-xl font-bold text-gray-900 mb-2 tracking-tight">Track Impact</h3>
               <p className="text-gray-600 text-sm leading-relaxed">See the meals you provided.</p>

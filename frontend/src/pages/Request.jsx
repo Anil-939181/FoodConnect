@@ -67,8 +67,10 @@ function Request() {
 
         {/* Header */}
         <div className="flex flex-col items-center px-6 sm:px-8 pt-8 pb-4 shrink-0">
-          <div className="w-14 h-14 flex items-center justify-center bg-gradient-to-br from-green-600 to-emerald-500 rounded-2xl shadow-lg text-2xl mb-4 select-none">
-            🔍
+          <div className="w-14 h-14 flex items-center justify-center bg-gradient-to-br from-green-600 to-emerald-500 rounded-2xl shadow-lg mb-4 text-white">
+            <svg className="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+            </svg>
           </div>
           <h1 className="text-2xl font-extrabold text-gray-800 tracking-tight text-center">Find Donations</h1>
           <p className="text-sm text-gray-400 mt-1 text-center">Search for available food near you</p>
@@ -175,7 +177,7 @@ function Request() {
               type="submit"
               className="w-full flex items-center justify-center gap-2 py-2.5 sm:py-3 rounded-xl bg-gradient-to-r from-green-600 to-emerald-500 hover:from-green-700 hover:to-emerald-600 text-white font-bold text-xs sm:text-sm shadow-lg transition"
             >
-              🚀 Search Donations
+              Search Donations
             </button>
           </div>
 
