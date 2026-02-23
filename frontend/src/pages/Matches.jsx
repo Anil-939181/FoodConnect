@@ -302,6 +302,13 @@ function Matches() {
                 {/* Highlight bar at top */}
                 <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-green-400 to-emerald-500 transform scale-x-0 group-hover:scale-x-100 transition-transform origin-left duration-300"></div>
 
+                {donation.foodImage && (
+                  <div className="w-full h-36 mb-4 rounded-xl overflow-hidden bg-gray-50 flex-shrink-0 relative group/img">
+                    <div className="absolute inset-0 bg-black/10 group-hover/img:bg-transparent transition-colors z-10"></div>
+                    <img src={donation.foodImage} alt={donation.mealType} className="w-full h-full object-cover transition-transform duration-700 group-hover/img:scale-110" />
+                  </div>
+                )}
+
                 <div className="flex justify-between items-start mb-4">
                   <div>
                     <h3 className="text-xl font-extrabold text-gray-900 capitalize leading-tight">

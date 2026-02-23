@@ -287,6 +287,13 @@ function MyActivity() {
                 >
                   <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-green-400 to-emerald-500 transform scale-x-0 group-hover:scale-x-100 transition-transform origin-left duration-300"></div>
 
+                  {(role === "donor" ? entry.foodImage : entry.matchedDonation?.foodImage) && (
+                    <div className="w-full h-32 mb-4 rounded-xl overflow-hidden bg-gray-50 flex-shrink-0 relative group/img">
+                      <div className="absolute inset-0 bg-black/5 group-hover/img:bg-transparent transition-colors z-10"></div>
+                      <img src={role === "donor" ? entry.foodImage : entry.matchedDonation?.foodImage} alt="Food Donation" className="w-full h-full object-cover transition-transform duration-700 group-hover/img:scale-105" />
+                    </div>
+                  )}
+
                   <div className="flex justify-between items-start mb-4">
                     <div>
                       <span className={`${getStatusBadge(entry.status)} uppercase tracking-wider`}>

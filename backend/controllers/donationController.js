@@ -3,14 +3,50 @@ const Donation = require("../models/Donation");
 // Create Donation
 exports.createDonation = async (req, res) => {
     try {
-        const { items, mealType, expiryTime } = req.body;
+        let { items, mealType, expiryTime } = req.body;
+
+        // if items came as a string (from FormData), parse it
+        if (typeof items === 'string') {
+            try {
+                items = JSON.parse(items);
+            } catch (e) {
+                return res.status(400).json({ message: "Invalid items format" });
+            }
+        }
+
+        let foodImage = "";
+
+        if (req.file) {
+            try {
+                const uploadResult = await new Promise((resolve, reject) => {
+                    require("../config/cloudinary").cloudinary.uploader
+                        .upload_stream(
+                            {
+                                folder: "food-connect/donations",
+                                public_id: `donation_${Date.now()}_${req.user.id}`,
+                                overwrite: true,
+                            },
+                            (error, result) => {
+                                if (error) reject(error);
+                                else resolve(result);
+                            }
+                        )
+                        .end(req.file.buffer);
+                });
+                foodImage = uploadResult.secure_url;
+            } catch (uploadError) {
+                console.error("Cloudinary upload error:", uploadError);
+                return res.status(500).json({ message: "Food image upload failed" });
+            }
+        }
 
         const donation = await Donation.create({
-  donor: req.user.id,
-  items,
-  mealType,
-  expiryTime
-});
+            donor: req.user.id,
+            items,
+            mealType,
+            expiryTime,
+            foodImage
+        });
 
         res.status(201).json(donation);
 
@@ -116,8 +152,8 @@ exports.getDonationHistory = async (req, res) => {
             donor: req.user.id,
             status: "completed"
         })
-        .skip(skip)
-        .limit(limit);
+            .skip(skip)
+            .limit(limit);
 
         res.json(donations);
     } catch (error) {
@@ -126,57 +162,57 @@ exports.getDonationHistory = async (req, res) => {
 };
 
 exports.getMyActiveDonations = async (req, res) => {
-  try {
-    const page = parseInt(req.query.page) || 1;
-    const limit = parseInt(req.query.limit) || 5;
-    const tab = req.query.tab || "ongoing";
-    const search = req.query.search || "";
+    try {
+        const page = parseInt(req.query.page) || 1;
+        const limit = parseInt(req.query.limit) || 5;
+        const tab = req.query.tab || "ongoing";
+        const search = req.query.search || "";
 
-    const skip = (page - 1) * limit;
+        const skip = (page - 1) * limit;
 
-    const ongoingStatuses = ["available", "requested", "reserved"];
-    const completedStatuses = ["completed", "cancelled", "rejected", "fulfilled"];
+        const ongoingStatuses = ["available", "requested", "reserved"];
+        const completedStatuses = ["completed", "cancelled", "rejected", "fulfilled"];
 
-    let statusFilter =
-      tab === "ongoing" ? ongoingStatuses : completedStatuses;
+        let statusFilter =
+            tab === "ongoing" ? ongoingStatuses : completedStatuses;
 
-    let query = {
-      donor: req.user.id,
-      status: { $in: statusFilter }
-    };
+        let query = {
+            donor: req.user.id,
+            status: { $in: statusFilter }
+        };
 
-    if (search) {
-      query["items.name"] = {
-        $regex: search,
-        $options: "i"
-      };
+        if (search) {
+            query["items.name"] = {
+                $regex: search,
+                $options: "i"
+            };
+        }
+
+        const total = await Donation.countDocuments(query);
+
+        const donations = await Donation.find(query)
+            .populate(
+                "acceptedBy",
+                "name email phone city state district pincode latitude longitude latDegrees latMinutes latSeconds lonDegrees lonMinutes lonSeconds address role"
+            )
+            .populate(
+                "requestedBy",
+                "name email phone city state district pincode latitude longitude latDegrees latMinutes latSeconds lonDegrees lonMinutes lonSeconds address role"
+            )
+            .sort({ createdAt: -1 })
+            .skip(skip)
+            .limit(limit);
+
+        res.json({
+            results: donations,
+            total,
+            page,
+            totalPages: Math.ceil(total / limit)
+        });
+
+    } catch (error) {
+        res.status(500).json({ message: error.message });
     }
-
-    const total = await Donation.countDocuments(query);
-
-    const donations = await Donation.find(query)
-      .populate(
-        "acceptedBy",
-        "name email phone city state district pincode latitude longitude latDegrees latMinutes latSeconds lonDegrees lonMinutes lonSeconds address role"
-      )
-      .populate(
-        "requestedBy",
-        "name email phone city state district pincode latitude longitude latDegrees latMinutes latSeconds lonDegrees lonMinutes lonSeconds address role"
-      )
-      .sort({ createdAt: -1 })
-      .skip(skip)
-      .limit(limit);
-
-    res.json({
-      results: donations,
-      total,
-      page,
-      totalPages: Math.ceil(total / limit)
-    });
-
-  } catch (error) {
-    res.status(500).json({ message: error.message });
-  }
 };
 
 

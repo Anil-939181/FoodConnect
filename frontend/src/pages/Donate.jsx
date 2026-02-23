@@ -9,6 +9,8 @@ function Donate() {
 
   const [mealType, setMealType] = useState("other");
   const [expiryTime, setExpiryTime] = useState("");
+  const [foodImageFile, setFoodImageFile] = useState(null);
+  const [imagePreview, setImagePreview] = useState(null);
   const [loading, setLoading] = useState(false);
 
   const getMinDateTime = () => {
@@ -36,24 +38,49 @@ function Donate() {
     setItems(updated);
   };
 
+  const handleImageChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      if (file.size > 5 * 1024 * 1024) {
+        toast.error("Image must be smaller than 5MB");
+        return;
+      }
+      setFoodImageFile(file);
+      setImagePreview(URL.createObjectURL(file));
+    }
+  };
+
+  const removeImage = () => {
+    setFoodImageFile(null);
+    setImagePreview(null);
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
 
     if (!expiryTime) {
-      toast.error("Please select expiry time");
+      toast.error("Please select a time");
       return;
     }
 
     setLoading(true);
 
     try {
-      await API.post("/donations", {
-        items: items.map(item => ({
-          ...item,
-          quantity: Number(item.quantity)
-        })),
-        mealType,
-        expiryTime
+      const formattedItems = items.map(item => ({
+        ...item,
+        quantity: Number(item.quantity)
+      }));
+
+      const formData = new FormData();
+      formData.append("items", JSON.stringify(formattedItems));
+      formData.append("mealType", mealType);
+      formData.append("expiryTime", expiryTime);
+      if (foodImageFile) {
+        formData.append("foodImage", foodImageFile);
+      }
+
+      await API.post("/donations", formData, {
+        headers: { "Content-Type": "multipart/form-data" }
       });
 
       toast.success("Donation created successfully");
@@ -62,6 +89,8 @@ function Donate() {
       setItems([{ name: "", quantity: "", unit: "units" }]);
       setMealType("other");
       setExpiryTime("");
+      setFoodImageFile(null);
+      setImagePreview(null);
 
     } catch (error) {
       toast.error(error.response?.data?.message || "Error creating donation");
@@ -180,11 +209,45 @@ function Donate() {
               </button>
             </div>
 
-            {/* Expiry */}
+            {/* Optional Food Image */}
             <div>
-              <label className="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1.5">
-                Expiry Time
-              </label>
+              <div className="flex flex-col mb-1.5">
+                <label className="text-xs font-semibold text-gray-400 uppercase tracking-wider">
+                  Food Photo <span className="text-gray-300 normal-case tracking-normal">(Optional)</span>
+                </label>
+                <p className="text-xs text-gray-500 mt-0.5">If you have the food currently prepared, adding a photo is very helpful. If you are planning a future scheduled donation, you can leave this blank.</p>
+              </div>
+
+              {!imagePreview ? (
+                <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-gray-300 border-dashed rounded-xl cursor-pointer bg-gray-50 hover:bg-gray-100 transition">
+                  <div className="flex flex-col items-center justify-center pt-5 pb-6 text-gray-400">
+                    <svg className="w-8 h-8 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                    <p className="text-xs font-semibold">Click to upload a photo</p>
+                  </div>
+                  <input type="file" className="hidden" accept="image/*" onChange={handleImageChange} />
+                </label>
+              ) : (
+                <div className="relative w-full h-40 rounded-xl overflow-hidden border border-gray-200">
+                  <img src={imagePreview} alt="Preview" className="w-full h-full object-cover" />
+                  <button
+                    type="button"
+                    onClick={removeImage}
+                    className="absolute top-2 right-2 bg-red-500 text-white w-8 h-8 rounded-full flex items-center justify-center hover:bg-red-600 shadow-md transition"
+                  >
+                    ✕
+                  </button>
+                </div>
+              )}
+            </div>
+
+            {/* Expiry / Planned Date */}
+            <div>
+              <div className="flex flex-col mb-1.5">
+                <label className="text-xs font-semibold text-gray-400 uppercase tracking-wider">
+                  Expiry / Planned Delivery Time
+                </label>
+                <p className="text-xs text-gray-500 mt-0.5">For surplus food, set when it expires. For manual planned donations, set the day and time you plan to deliver it.</p>
+              </div>
               <input
                 type="datetime-local"
                 value={expiryTime || getCurrentDateTime()}

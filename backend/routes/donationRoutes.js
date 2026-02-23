@@ -14,6 +14,8 @@ const {
   getDonationById
 } = require("../controllers/donationController");
 
+const { upload } = require("../config/cloudinary");
+
 // 🔹 ACTIVE DONATIONS
 router.get(
   "/my/all",
@@ -35,9 +37,9 @@ router.post(
   "/",
   authMiddleware,
   roleMiddleware("donor"),
+  upload.single("foodImage"),
   createDonation
 );
-
 // 🔹 BASIC CRUD
 router.get("/my", authMiddleware, getMyDonations);
 // fetch one donation for editing
