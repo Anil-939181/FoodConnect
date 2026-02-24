@@ -2,10 +2,6 @@
 
 A full-stack MERN application aimed at reducing food waste by connecting generous **Donors** (individuals, restaurants, event organizers) with verified **Organizations** (NGOs, orphanages, shelters) in real-time. 
 
-![MERN Stack](https://img.shields.io/badge/MERN-Stack-green) 
-![React](https://img.shields.io/badge/React-Vite-blue)
-![Tailwind](https://img.shields.io/badge/Tailwind-CSS-38B2AC)
-![License](https://img.shields.io/badge/license-MIT-blue.svg)
 
 ## 🌟 Key Features
 
