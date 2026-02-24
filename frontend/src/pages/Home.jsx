@@ -464,10 +464,7 @@ function Home() {
         </div>
         <div className="max-w-7xl mx-auto px-6 pt-10 border-t border-gray-800 text-center md:text-left flex flex-col md:flex-row justify-between items-center">
           <p className="font-medium text-gray-500">© {(new Date().getFullYear())} FoodConnect Technologies. All rights reserved.</p>
-          <div className="flex gap-6 mt-6 md:mt-0">
-            <a href="#" className="text-gray-500 hover:text-white transition-colors font-semibold">Twitter</a>
-            <a href="#" className="text-gray-500 hover:text-white transition-colors font-semibold">LinkedIn</a>
-          </div>
+
         </div>
       </footer>
 

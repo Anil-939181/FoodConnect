@@ -25,7 +25,7 @@ function EditDonation() {
         const d = res.data;
         setItems(d.items.map(i => ({ ...i })));
         setMealType(d.mealType || "other");
-        setExpiryTime(d.expiryTime ? d.expiryTime.slice(0,16) : "");
+        setExpiryTime(d.expiryTime ? d.expiryTime.slice(0, 16) : "");
       } catch (error) {
         toast.error(error.response?.data?.message || "Failed to load donation");
         navigate("/my-activity");
@@ -71,8 +71,8 @@ function EditDonation() {
   };
 
   return (
-    <div className="max-w-3xl mx-auto">
-      <div className="bg-white shadow-lg rounded-xl p-8">
+    <div className="max-w-3xl mx-auto px-4 py-8 mt-4 sm:mt-8">
+      <div className="bg-white shadow-lg rounded-2xl sm:rounded-3xl p-6 sm:p-8 border border-gray-100">
         <h2 className="text-2xl font-bold text-gray-800 mb-6">
           Edit Donation
         </h2>

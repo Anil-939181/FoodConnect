@@ -222,10 +222,10 @@ function Register() {
   const inputClass = "w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm text-gray-800 bg-gray-50 focus:outline-none focus:ring-2 focus:ring-green-400 focus:border-transparent focus:bg-white transition placeholder-gray-400";
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-green-50 via-white to-emerald-50 flex items-center justify-center sm:px-4 sm:py-10">
+    <div className="min-h-[calc(100vh-80px)] sm:min-h-[calc(100vh-96px)] bg-gradient-to-br from-green-50 via-white to-emerald-50 flex items-center justify-center p-4 sm:p-10">
 
       {/* ── Card ── */}
-      <div className="w-full max-w-lg sm:max-w-xl bg-white sm:rounded-3xl shadow-xl overflow-hidden min-h-screen sm:min-h-0 flex flex-col justify-center">
+      <div className="w-full max-w-lg sm:max-w-xl bg-white rounded-2xl sm:rounded-3xl shadow-xl overflow-hidden flex flex-col justify-center">
 
         {/* Accent bar */}
         <div className="h-1.5 bg-gradient-to-r from-green-700 via-emerald-400 to-green-500" />
