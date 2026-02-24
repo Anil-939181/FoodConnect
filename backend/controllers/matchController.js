@@ -284,7 +284,7 @@ exports.approveDonation = async (req, res) => {
     }
 
     donation.status = "reserved";
-    donation.acceptedBy = organizationId;
+    donation.reservedFor = organizationId;
     await donation.save();
 
     // notify organization by email that their request was approved/reserved
@@ -344,6 +344,8 @@ exports.completeMatch = async (req, res) => {
     const donation = await Donation.findById(request.matchedDonation);
 
     donation.status = "completed";
+    donation.acceptedBy = request.requester;
+    donation.reservedFor = null;
     await donation.save();
 
     // NOW reject all other requests
@@ -423,9 +425,9 @@ exports.cancelRequest = async (req, res) => {
     );
 
     // If this org was reserved → reopen donation
-    if (donation.acceptedBy?.toString() === req.user.id) {
+    if (donation.status === "reserved" && request.status === "cancelled") {
       donation.status = "available";
-      donation.acceptedBy = null;
+      donation.reservedFor = null;
     }
 
     await donation.save();

@@ -196,6 +196,10 @@ exports.getMyActiveDonations = async (req, res) => {
                 "name email phone city state district pincode latitude longitude latDegrees latMinutes latSeconds lonDegrees lonMinutes lonSeconds address role"
             )
             .populate(
+                "reservedFor",
+                "name email phone city state district pincode latitude longitude latDegrees latMinutes latSeconds lonDegrees lonMinutes lonSeconds address role"
+            )
+            .populate(
                 "requestedBy",
                 "name email phone city state district pincode latitude longitude latDegrees latMinutes latSeconds lonDegrees lonMinutes lonSeconds address role"
             )

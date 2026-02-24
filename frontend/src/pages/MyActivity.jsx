@@ -515,26 +515,23 @@ function MyActivity() {
                     </div>
                   )}
 
-                  {/* Show organizations that accepted this donation */}
-                  {selectedEntry.acceptedBy && (
+                  {/* Show organizations that accepted or reserved this donation */}
+                  {(selectedEntry.acceptedBy || selectedEntry.reservedFor) && (
                     <div className="mt-6 border-t pt-4 border-gray-100">
                       <h4 className="font-semibold text-gray-800 flex items-center gap-2 mb-3">
                         <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                        Accepted By
+                        {selectedEntry.acceptedBy ? "Accepted By" : "Approved To"}
                       </h4>
-                      {Array.isArray(selectedEntry.acceptedBy) ? (
-                        selectedEntry.acceptedBy.map((org) => (
-                          <div key={org._id} className="bg-blue-50/50 border border-blue-100 p-3 rounded-xl mb-2">
-                            <p className="font-bold text-blue-900">{org.name}</p>
-                            <p className="text-sm text-blue-700">{org.city} {org.phone ? `— ${org.phone}` : ""} {org.email ? `— ${org.email}` : ""}</p>
+                      {(() => {
+                        const org = selectedEntry.acceptedBy || selectedEntry.reservedFor;
+                        const orgs = Array.isArray(org) ? org : [org];
+                        return orgs.map((o) => (
+                          <div key={o._id} className="bg-blue-50/50 border border-blue-100 p-3 rounded-xl mb-2">
+                            <p className="font-bold text-blue-900">{o.name}</p>
+                            <p className="text-sm text-blue-700">{o.city} {o.phone ? `— ${o.phone}` : ""} {o.email ? `— ${o.email}` : ""}</p>
                           </div>
-                        ))
-                      ) : (
-                        <div className="bg-blue-50 border border-blue-100 p-3 rounded-xl">
-                          <p className="font-medium">{selectedEntry.acceptedBy.name}</p>
-                          <p className="text-gray-500">{selectedEntry.acceptedBy.city} — {selectedEntry.acceptedBy.phone || selectedEntry.acceptedBy.email}</p>
-                        </div>
-                      )}
+                        ));
+                      })()}
                     </div>
                   )}
 
