@@ -56,8 +56,8 @@ function Navbar() {
     return (
       <Link
         to={to}
-        className={`relative px-3 py-2 font-medium tracking-wide transition-colors duration-300
-          ${isActive ? "text-green-600 font-bold" : "text-gray-700 hover:text-green-600"}
+        className={`relative px-4 py-2 font-bold tracking-wide transition-all duration-300 rounded-lg
+          ${isActive ? "text-green-700 bg-green-50/50" : "text-gray-600 hover:text-green-600 hover:bg-green-50/30"}
           group`}
       >
         {children}
@@ -84,8 +84,8 @@ function Navbar() {
 
   return (
     <>
-      <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 
-        ${scrolled ? "bg-white/90 backdrop-blur-md shadow-md py-3" : "bg-white py-4 border-b border-gray-100"}`}
+      <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 
+        ${scrolled ? "bg-white/80 backdrop-blur-lg shadow-lg py-3 border-b border-white/20" : "bg-white/95 backdrop-blur-sm py-4 border-b border-gray-100"}`}
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-x-6 flex justify-between items-center">
 
@@ -155,16 +155,16 @@ function Navbar() {
                   {profileOpen && (
                     <>
                       <div className="fixed inset-0 z-40" onClick={() => setProfileOpen(false)}></div>
-                      <div className="absolute right-0 mt-3 w-64 bg-white rounded-2xl shadow-xl border border-gray-100 py-2 z-50 transform opacity-100 scale-100 origin-top-right transition-all">
-                        <div className="px-5 py-3 border-b border-gray-100 bg-gray-50/50 rounded-t-2xl">
-                          <p className="font-semibold text-gray-900 truncate">{userProfile?.name || name}</p>
-                          <p className="text-xs font-medium text-gray-500 uppercase tracking-wider mt-1">{role}</p>
+                      <div className="absolute right-0 mt-4 w-72 bg-white/95 backdrop-blur-2xl rounded-2xl shadow-2xl ring-1 ring-black/5 py-2 z-50 transform transition-all duration-300 origin-top-right animate-fade-in">
+                        <div className="px-5 py-4 border-b border-gray-100 bg-gradient-to-br from-green-50/50 to-emerald-50/30 rounded-t-2xl">
+                          <p className="font-bold text-gray-900 truncate text-lg">{userProfile?.name || name}</p>
+                          <p className="text-xs font-bold text-green-600 uppercase tracking-widest mt-1">{role}</p>
                         </div>
 
                         <div className="p-2">
                           <Link
                             to="/account"
-                            className="flex items-center gap-3 px-3 py-2 text-sm font-medium text-gray-700 rounded-lg hover:bg-green-50 hover:text-green-600 transition-colors"
+                            className="flex items-center gap-3 px-4 py-2.5 text-sm font-bold text-gray-700 rounded-xl hover:bg-green-50 hover:text-green-700 hover:shadow-sm transition-all"
                           >
                             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
@@ -176,9 +176,9 @@ function Navbar() {
                         <div className="p-2 border-t border-gray-100">
                           <button
                             onClick={handleLogout}
-                            className="flex items-center gap-3 w-full text-left px-3 py-2 text-sm font-medium text-red-600 rounded-lg hover:bg-red-50 transition-colors"
+                            className="flex items-center gap-3 w-full text-left px-4 py-2.5 text-sm font-bold text-red-600 rounded-xl hover:bg-red-50 hover:shadow-sm transition-all text-red-600 group"
                           >
-                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <svg className="w-5 h-5 group-hover:-translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
                             </svg>
                             Logout
@@ -208,10 +208,10 @@ function Navbar() {
 
         {/* Mobile Menu Overlay */}
         <div
-          className={`md:hidden absolute top-full left-0 right-0 bg-white border-b border-gray-100 shadow-xl overflow-hidden transition-all duration-300 ease-in-out ${menuOpen ? 'max-h-[500px] opacity-100' : 'max-h-0 opacity-0'
+          className={`md:hidden absolute top-full left-0 right-0 bg-white/95 backdrop-blur-xl border-b border-gray-100 shadow-2xl overflow-hidden transition-all duration-300 ease-in-out ${menuOpen ? 'max-h-[500px] opacity-100' : 'max-h-0 opacity-0'
             }`}
         >
-          <div className="px-4 py-3 space-y-0.5">
+          <div className="px-4 py-4 space-y-1">
 
             <MobileNavLink to="/" onClick={() => setMenuOpen(false)}>Home</MobileNavLink>
 
@@ -248,39 +248,37 @@ function Navbar() {
 
                 <MobileNavLink to="/my-activity" onClick={() => setMenuOpen(false)}>My Activity</MobileNavLink>
 
-                <div className="pt-4 mt-2 border-t border-gray-100">
-                  <div className="flex items-center gap-3 px-4 py-2 mb-2">
-                    <div className="w-10 h-10 rounded-full bg-gradient-to-r from-blue-500 to-indigo-500 flex items-center justify-center text-white shadow-inner overflow-hidden shrink-0">
-                      {userProfile?.profileImage ? (
-                        <img src={userProfile.profileImage} alt="Profile" className="w-full h-full object-cover" />
-                      ) : (
-                        <svg className="w-full h-full text-white/90 mt-2" fill="currentColor" viewBox="0 0 24 24">
-                          <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
-                        </svg>
-                      )}
-                    </div>
-                    <div className="min-w-0">
-                      <p className="font-semibold text-gray-900 truncate">{userProfile?.name || name}</p>
-                      <p className="text-sm font-medium text-gray-500 uppercase">{role}</p>
-                    </div>
-                  </div>
-
+                <div className="pt-2 mt-1 border-t border-gray-100">
                   <Link
                     to="/account"
                     onClick={() => setMenuOpen(false)}
-                    className="flex items-center gap-3 w-full px-4 py-3 text-base font-medium text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+                    className="flex items-center justify-between gap-3 px-4 py-2 hover:bg-gray-50 rounded-lg transition-colors group"
                   >
-                    <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-full bg-gradient-to-r from-blue-500 to-indigo-500 flex items-center justify-center text-white shadow-inner overflow-hidden shrink-0">
+                        {userProfile?.profileImage ? (
+                          <img src={userProfile.profileImage} alt="Profile" className="w-full h-full object-cover" />
+                        ) : (
+                          <svg className="w-full h-full text-white/90 mt-2" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
+                          </svg>
+                        )}
+                      </div>
+                      <div className="min-w-0">
+                        <p className="font-semibold text-gray-900 truncate">{userProfile?.name || name}</p>
+                        <p className="text-xs font-bold text-green-600 uppercase tracking-wider">{role}</p>
+                      </div>
+                    </div>
+                    <svg className="w-5 h-5 text-gray-400 group-hover:text-green-600 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                     </svg>
-                    My Account
                   </Link>
 
                   <button
                     onClick={handleLogout}
-                    className="flex items-center gap-3 w-full text-left px-4 py-3 text-base font-medium text-red-600 rounded-lg hover:bg-red-50 transition-colors"
+                    className="flex items-center gap-3 w-full text-left px-4 py-2 mt-1 text-base font-medium text-red-600 rounded-lg hover:bg-red-50 transition-colors group"
                   >
-                    <svg className="w-5 h-5 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg className="w-5 h-5 text-red-500 group-hover:-translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
                     </svg>
                     Logout
