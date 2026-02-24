@@ -1,7 +1,7 @@
 const Request = require("../models/Request");
 const Donation = require("../models/Donation");
 const User = require("../models/User");
-const { sendCustomEmail } = require("../utils/email");
+const { sendCustomEmail, baseEmailTemplate } = require("../utils/email");
 const mongoose = require("mongoose");
 
 
@@ -135,14 +135,15 @@ exports.cancelRequest = async (req, res) => {
       const orgUser = await User.findById(req.user.id).select("name email");
       if (donorUser?.email) {
         const subject = `Request cancelled`;
-        const itemsHtml = (donation.items || []).map(i => `<li>${i.name} — ${i.quantity} ${i.unit||""}</li>`).join("");
-        const html = `
+        const itemsHtml = (donation.items || []).map(i => `<li>${i.name} — ${i.quantity} ${i.unit || ""}</li>`).join("");
+        const htmlContent = `
           <p>Hi ${donorUser.name || "donor"},</p>
           <p>The request from <b>${orgUser?.name || "an organization"}</b> has been cancelled.</p>
           <p><b>Donation details:</b></p>
           <ul>${itemsHtml}</ul>
           <p>Meal type: <b>${donation.mealType || "N/A"}</b></p>
         `;
+        const html = baseEmailTemplate(subject, htmlContent, 'cancel');
         await sendCustomEmail({ to: donorUser.email, subject, html });
       }
     } catch (e) {

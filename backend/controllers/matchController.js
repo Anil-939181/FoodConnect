@@ -1,7 +1,7 @@
 const Donation = require("../models/Donation");
 const Request = require("../models/Request");
 const User = require("../models/User");
-const { sendCustomEmail } = require("../utils/email");
+const { sendCustomEmail, baseEmailTemplate } = require("../utils/email");
 
 // convert DMS to decimal (backend helper)
 function dmsToDecimal(deg, min = 0, sec = 0) {
@@ -222,7 +222,7 @@ exports.requestDonation = async (req, res) => {
       if (donorUser && donorUser.email) {
         const subject = `You have a new request for your donation`;
         const itemsHtml = (donation.items || []).map(i => `<li>${i.name} — ${i.quantity} ${i.unit || ""}</li>`).join("");
-        const html = `
+        const htmlContent = `
           <p>Hi ${donorUser.name || "donor"},</p>
           <p>Your donation has received a new request${orgUser?.name ? ` from <b>${orgUser.name}</b>` : ""}.</p>
           <p><b>Donation details:</b></p>
@@ -231,6 +231,7 @@ exports.requestDonation = async (req, res) => {
           <p>Expiry: <b>${donation.expiryTime ? new Date(donation.expiryTime).toLocaleString() : "N/A"}</b></p>
           <p>Please review the request in your Activity. Personal contact details are not shared until the organization confirms pickup.</p>
         `;
+        const html = baseEmailTemplate(subject, htmlContent, 'request');
         await sendCustomEmail({ to: donorUser.email, subject, html });
       }
     } catch (e) {
@@ -294,7 +295,7 @@ exports.approveDonation = async (req, res) => {
       if (orgUser && orgUser.email) {
         const subject = `Your request has been approved`;
         const itemsHtml = (donation.items || []).map(i => `<li>${i.name} — ${i.quantity} ${i.unit || ""}</li>`).join("");
-        const html = `
+        const htmlContent = `
           <p>Hi ${orgUser.name || "partner"},</p>
           <p>Your request for the donation has been approved by the donor.</p>
           <p><b>Donation details:</b></p>
@@ -303,6 +304,7 @@ exports.approveDonation = async (req, res) => {
           <p>Expiry: <b>${donation.expiryTime ? new Date(donation.expiryTime).toLocaleString() : "N/A"}</b></p>
           <p>Please coordinate pickup via the app. Donor personal contact details will be shared only after you mark the match completed.</p>
         `;
+        const html = baseEmailTemplate(subject, htmlContent, 'approve');
         await sendCustomEmail({ to: orgUser.email, subject, html });
       }
     } catch (e) {
@@ -364,14 +366,14 @@ exports.completeMatch = async (req, res) => {
       const donorUser = await User.findById(donation.donor).select("name email");
       const subject = `Match completed`;
       const itemsHtml = (donation.items || []).map(i => `<li>${i.name} — ${i.quantity} ${i.unit || ""}</li>`).join("");
-      const htmlOrg = `
+      const htmlOrgContent = `
         <p>Hi ${orgUser?.name || "partner"},</p>
         <p>The donation you picked up has been marked completed. Thank you!</p>
         <p><b>Donation details:</b></p>
         <ul>${itemsHtml}</ul>
         <p>Meal type: <b>${donation.mealType || "N/A"}</b></p>
       `;
-      const htmlDonor = `
+      const htmlDonorContent = `
         <p>Hi ${donorUser?.name || "donor"},</p>
         <p>Your donation has been marked completed.</p>
         <p><b>Donation details:</b></p>
@@ -380,6 +382,8 @@ exports.completeMatch = async (req, res) => {
         <p>${orgUser?.name || "Organization"}${orgUser?.phone ? ` — Phone: ${orgUser.phone}` : ""}${orgUser?.email ? ` — Email: ${orgUser.email}` : ""}</p>
         <p>Thank you for donating.</p>
       `;
+      const htmlOrg = baseEmailTemplate(subject, htmlOrgContent, 'complete');
+      const htmlDonor = baseEmailTemplate(subject, htmlDonorContent, 'complete');
       if (orgUser?.email) await sendCustomEmail({ to: orgUser.email, subject, html: htmlOrg });
       if (donorUser?.email) await sendCustomEmail({ to: donorUser.email, subject, html: htmlDonor });
     } catch (e) {
@@ -439,13 +443,14 @@ exports.cancelRequest = async (req, res) => {
       if (donorUser?.email) {
         const subject = `Request cancelled`;
         const itemsHtml = (donation.items || []).map(i => `<li>${i.name} — ${i.quantity} ${i.unit || ""}</li>`).join("");
-        const html = `
+        const htmlContent = `
           <p>Hi ${donorUser.name || "donor"},</p>
           <p>The request from <b>${orgUser?.name || "an organization"}</b> has been cancelled.</p>
           <p><b>Donation details:</b></p>
           <ul>${itemsHtml}</ul>
           <p>Meal type: <b>${donation.mealType || "N/A"}</b></p>
         `;
+        const html = baseEmailTemplate(subject, htmlContent);
         await sendCustomEmail({ to: donorUser.email, subject, html });
       }
     } catch (e) {

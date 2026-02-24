@@ -1,4 +1,4 @@
-const { sendCustomEmail } = require("../utils/email");
+const { sendCustomEmail, baseEmailTemplate } = require("../utils/email");
 
 exports.submitContactForm = async (req, res) => {
     try {
@@ -12,9 +12,7 @@ exports.submitContactForm = async (req, res) => {
         }
 
         const emailSubject = `Contact Form: ${subject}`;
-        const html = `
-            <div style="font-family: Arial, sans-serif; max-w: 600px; margin: 0 auto;">
-                <h2 style="color: #059669;">New Contact Us Message</h2>
+        const htmlContent = `
                 <div style="background-color: #f9fafb; padding: 20px; border-radius: 8px; border: 1px solid #e5e7eb; margin-bottom: 24px;">
                     <p style="margin-top: 0;"><strong>From Name:</strong> ${name}</p>
                     <p><strong>Reply-To Email:</strong> <a href="mailto:${email}">${email}</a></p>
@@ -22,8 +20,8 @@ exports.submitContactForm = async (req, res) => {
                 </div>
                 <h3 style="color: #374151; border-bottom: 2px solid #e5e7eb; padding-bottom: 8px;">Message Content</h3>
                 <p style="color: #4b5563; line-height: 1.6; white-space: pre-wrap;">${message.replace(/\n/g, '<br/>')}</p>
-            </div>
         `;
+        const html = baseEmailTemplate("New Contact Us Message", htmlContent, 'contact');
 
         await sendCustomEmail({ to: toEmail, subject: emailSubject, html });
 
