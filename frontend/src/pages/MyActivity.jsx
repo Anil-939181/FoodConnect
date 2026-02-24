@@ -170,24 +170,32 @@ function MyActivity() {
   };
 
   const handleCancel = async (requestId) => {
-    await API.post("/requests/cancel", { requestId });
-    toast.success("Request cancelled");
-    fetchHistory(page);
-    if (typeof window !== 'undefined' && window.refreshNotif) {
-      window.refreshNotif();
+    try {
+      await API.post("/requests/cancel", { requestId });
+      toast.success("Request cancelled");
+      fetchHistory(page);
+      if (typeof window !== 'undefined' && window.refreshNotif) {
+        window.refreshNotif();
+      }
+    } catch (error) {
+      toast.error(error.response?.data?.message || "Error cancelling request");
     }
   };
 
   const handleApprove = async (donationId, orgId) => {
-    await API.post("/match/approve", {
-      donationId,
-      organizationId: orgId
-    });
-    toast.success("Donation approved");
-    fetchHistory(page);
-    // refresh notification count
-    if (typeof window !== 'undefined' && window.refreshNotif) {
-      window.refreshNotif();
+    try {
+      await API.post("/match/approve", {
+        donationId,
+        organizationId: orgId
+      });
+      toast.success("Donation approved");
+      fetchHistory(page);
+      // refresh notification count
+      if (typeof window !== 'undefined' && window.refreshNotif) {
+        window.refreshNotif();
+      }
+    } catch (error) {
+      toast.error(error.response?.data?.message || "Error approving donation");
     }
   };
 
