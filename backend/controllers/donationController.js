@@ -170,8 +170,8 @@ exports.getMyActiveDonations = async (req, res) => {
 
         const skip = (page - 1) * limit;
 
-        const ongoingStatuses = ["available", "requested", "reserved"];
-        const completedStatuses = ["completed", "cancelled", "rejected", "fulfilled"];
+        const ongoingStatuses = ["available", "requested", "reserved", "accepted"];
+        const completedStatuses = ["completed", "delivered", "cancelled", "rejected", "fulfilled"];
 
         let statusFilter =
             tab === "ongoing" ? ongoingStatuses : completedStatuses;

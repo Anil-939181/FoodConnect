@@ -15,8 +15,8 @@ exports.getRequestHistory = async (req, res) => {
 
     const skip = (page - 1) * limit;
 
-    const ongoingStatuses = ["requested", "reserved"];
-    const completedStatuses = ["completed", "cancelled", "rejected", "fulfilled"];
+    const ongoingStatuses = ["requested", "reserved", "accepted"];
+    const completedStatuses = ["completed", "delivered", "cancelled", "rejected", "fulfilled"];
 
     const statusFilter =
       tab === "ongoing" ? ongoingStatuses : completedStatuses;
@@ -118,6 +118,10 @@ exports.cancelRequest = async (req, res) => {
     // If this org was accepted, clear acceptedBy
     if (donation.acceptedBy?.toString() === req.user.id) {
       donation.acceptedBy = null;
+    }
+
+    if (donation.reservedFor?.toString() === req.user.id) {
+      donation.reservedFor = null;
     }
 
     // Recalculate status: if there are remaining requests -> 'requested', else 'available'

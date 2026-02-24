@@ -143,10 +143,30 @@ function MyActivity() {
     setDeleteTarget(null);
   };
 
-  const handleComplete = async (requestId) => {
-    await API.post("/match/complete", { requestId });
-    toast.success("Marked as completed");
-    fetchHistory(page);
+  const handleDeliver = async (requestId) => {
+    try {
+      await API.post("/match/deliver", { requestId });
+      toast.success("Marked as delivered");
+      fetchHistory(page);
+      if (typeof window !== 'undefined' && window.refreshNotif) {
+        window.refreshNotif();
+      }
+    } catch (error) {
+      toast.error(error.response?.data?.message || "Error marking as delivered");
+    }
+  };
+
+  const handleAccept = async (requestId) => {
+    try {
+      await API.post("/match/accept", { requestId });
+      toast.success("Donation accepted");
+      fetchHistory(page);
+      if (typeof window !== 'undefined' && window.refreshNotif) {
+        window.refreshNotif();
+      }
+    } catch (error) {
+      toast.error(error.response?.data?.message || "Error accepting donation");
+    }
   };
 
   const handleCancel = async (requestId) => {
@@ -177,6 +197,8 @@ function MyActivity() {
       available: "bg-gray-200 text-gray-700",
       requested: "bg-blue-100 text-blue-600",
       reserved: "bg-orange-100 text-orange-600",
+      accepted: "bg-indigo-100 text-indigo-600",
+      delivered: "bg-green-100 text-green-700",
       completed: "bg-green-100 text-green-600",
       fulfilled: "bg-green-100 text-green-600",
       cancelled: "bg-red-100 text-red-600",
@@ -185,8 +207,8 @@ function MyActivity() {
     return base + (colors[status] || colors.available);
   };
 
-  const ongoingStatuses = ["available", "requested", "reserved"];
-  const completedStatuses = ["completed", "cancelled", "rejected", "fulfilled"];
+  const ongoingStatuses = ["available", "requested", "reserved", "accepted"];
+  const completedStatuses = ["completed", "delivered", "cancelled", "rejected", "fulfilled"];
 
   const filteredData = data
     .filter(entry =>
@@ -345,16 +367,27 @@ function MyActivity() {
                       {role === "organization" && entry.status === "reserved" && (
                         <div className="flex w-full gap-2">
                           <button
-                            onClick={() => handleComplete(entry._id)}
+                            onClick={() => handleAccept(entry._id)}
                             className="flex-1 bg-green-50 text-green-700 font-semibold py-2 rounded-xl hover:bg-green-100 border border-green-200 transition text-sm"
                           >
-                            Complete
+                            Accept
                           </button>
                           <button
                             onClick={() => handleCancel(entry._id)}
                             className="flex-1 bg-red-50 text-red-600 font-semibold py-2 rounded-xl border border-red-200 hover:bg-red-100 transition text-sm"
                           >
-                            Cancel
+                            Reject
+                          </button>
+                        </div>
+                      )}
+
+                      {role === "organization" && entry.status === "accepted" && (
+                        <div className="flex w-full gap-2">
+                          <button
+                            onClick={() => handleDeliver(entry._id)}
+                            className="flex-1 bg-green-600 text-white font-semibold py-2 rounded-xl hover:bg-green-700 transition text-sm shadow-sm border border-green-700"
+                          >
+                            Mark Delivered
                           </button>
                         </div>
                       )}

@@ -8,7 +8,8 @@ const {
   searchMatches,
   requestDonation,
   approveDonation,
-  completeMatch
+  acceptMatch,
+  deliverMatch
 } = require("../controllers/matchController");
 
 // 🔹 SEARCH (NO DB CREATION)
@@ -35,12 +36,20 @@ router.post(
   approveDonation
 );
 
-// 🔹 ORGANIZATION COMPLETES
+// 🔹 ORGANIZATION ACCEPTS
 router.post(
-  "/complete",
+  "/accept",
   authMiddleware,
   roleMiddleware("organization"),
-  completeMatch
+  acceptMatch
+);
+
+// 🔹 ORGANIZATION DISCUSSES/MARKS DELIVERED
+router.post(
+  "/deliver",
+  authMiddleware,
+  roleMiddleware("organization"),
+  deliverMatch
 );
 
 module.exports = router;

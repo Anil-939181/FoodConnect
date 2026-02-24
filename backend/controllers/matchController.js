@@ -320,32 +320,21 @@ exports.approveDonation = async (req, res) => {
 
 
 
-// 🔹 ORGANIZATION COMPLETES TRANSACTION
-exports.completeMatch = async (req, res) => {
+// 🔹 ORGANIZATION ACCEPTS MATCH
+exports.acceptMatch = async (req, res) => {
   try {
     const { requestId } = req.body;
-
     const request = await Request.findById(requestId);
 
-    if (!request) {
-      return res.status(404).json({ message: "Request not found" });
-    }
+    if (!request) return res.status(404).json({ message: "Request not found" });
+    if (request.requester.toString() !== req.user.id) return res.status(403).json({ message: "Not authorized" });
+    if (request.status !== "reserved") return res.status(400).json({ message: "Not reserved yet" });
 
-    if (request.requester.toString() !== req.user.id) {
-      return res.status(403).json({ message: "Not authorized" });
-    }
-
-    if (request.status !== "reserved") {
-      return res.status(400).json({ message: "Not reserved yet" });
-    }
-
-    request.status = "fulfilled";
-    request.completedAt = new Date();
+    request.status = "accepted";
     await request.save();
 
     const donation = await Donation.findById(request.matchedDonation);
-
-    donation.status = "completed";
+    donation.status = "accepted";
     donation.acceptedBy = request.requester;
     donation.reservedFor = null;
     await donation.save();
@@ -360,6 +349,60 @@ exports.completeMatch = async (req, res) => {
       { status: "rejected" }
     );
 
+    // notify donor that org accepted
+    try {
+      const orgUser = await User.findById(request.requester).select("name email phone");
+      const donorUser = await User.findById(donation.donor).select("name email");
+      if (donorUser?.email) {
+        const subject = `Request Accepted by Organization`;
+        const itemsHtml = (donation.items || []).map(i => `<li>${i.name} — ${i.quantity} ${i.unit || ""}</li>`).join("");
+        const htmlContent = `
+          <p>Hi ${donorUser.name || "donor"},</p>
+          <p><b>${orgUser?.name || "The organization"}</b> has accepted your donation and will coordinate pickup.</p>
+          <p><b>Donation details:</b></p>
+          <ul>${itemsHtml}</ul>
+        `;
+        const html = baseEmailTemplate(subject, htmlContent, 'complete');
+        await sendCustomEmail({ to: donorUser.email, subject, html });
+      }
+    } catch (e) {
+      console.error("Error sending accept email:", e.message);
+    }
+
+    res.json({ message: "Request accepted successfully" });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// 🔹 ORGANIZATION MARKS DELIVERED
+exports.deliverMatch = async (req, res) => {
+  try {
+    const { requestId } = req.body;
+
+    const request = await Request.findById(requestId);
+
+    if (!request) {
+      return res.status(404).json({ message: "Request not found" });
+    }
+
+    if (request.requester.toString() !== req.user.id) {
+      return res.status(403).json({ message: "Not authorized" });
+    }
+
+    if (request.status !== "accepted") {
+      return res.status(400).json({ message: "Must be accepted first" });
+    }
+
+    request.status = "delivered";
+    request.completedAt = new Date();
+    await request.save();
+
+    const donation = await Donation.findById(request.matchedDonation);
+
+    donation.status = "delivered";
+    await donation.save();
+
     // notify donor and organization about completion
     try {
       const orgUser = await User.findById(request.requester).select("name email phone");
@@ -368,17 +411,17 @@ exports.completeMatch = async (req, res) => {
       const itemsHtml = (donation.items || []).map(i => `<li>${i.name} — ${i.quantity} ${i.unit || ""}</li>`).join("");
       const htmlOrgContent = `
         <p>Hi ${orgUser?.name || "partner"},</p>
-        <p>The donation you picked up has been marked completed. Thank you!</p>
+        <p>The donation you picked up has been marked delivered. Thank you!</p>
         <p><b>Donation details:</b></p>
         <ul>${itemsHtml}</ul>
         <p>Meal type: <b>${donation.mealType || "N/A"}</b></p>
       `;
       const htmlDonorContent = `
         <p>Hi ${donorUser?.name || "donor"},</p>
-        <p>Your donation has been marked completed.</p>
+        <p>Your donation has been marked delivered by the organization.</p>
         <p><b>Donation details:</b></p>
         <ul>${itemsHtml}</ul>
-        <p>Organization contact for pickup confirmation:</p>
+        <p>Organization contact:</p>
         <p>${orgUser?.name || "Organization"}${orgUser?.phone ? ` — Phone: ${orgUser.phone}` : ""}${orgUser?.email ? ` — Email: ${orgUser.email}` : ""}</p>
         <p>Thank you for donating.</p>
       `;
@@ -428,10 +471,15 @@ exports.cancelRequest = async (req, res) => {
       id => id.toString() !== req.user.id
     );
 
-    // If this org was reserved → reopen donation
-    if (donation.status === "reserved" && request.status === "cancelled") {
-      donation.status = "available";
+    // If this org was reserved or accepted → reopen donation
+    if ((donation.status === "reserved" || donation.status === "accepted") && request.status === "cancelled") {
+      if (donation.requestedBy && donation.requestedBy.length > 0) {
+        donation.status = "requested";
+      } else {
+        donation.status = "available";
+      }
       donation.reservedFor = null;
+      donation.acceptedBy = null;
     }
 
     await donation.save();
