@@ -610,11 +610,22 @@ function MyActivity() {
                       </div>
                       <button
                         onClick={() => {
-                          const coords = selectedEntry.matchedDonation.location?.coordinates;
-                          if (coords && coords.length >= 2) {
-                            setMapModal({ lat: coords[1], lon: coords[0] });
+                          const donor = selectedEntry.matchedDonation.donor;
+                          if (donor?.latitude && donor?.longitude) {
+                            setMapModal({
+                              lat: donor.latitude,
+                              lon: donor.longitude,
+                              latDegrees: donor.latDegrees,
+                              latMinutes: donor.latMinutes,
+                              latSeconds: donor.latSeconds,
+                              lonDegrees: donor.lonDegrees,
+                              lonMinutes: donor.lonMinutes,
+                              lonSeconds: donor.lonSeconds,
+                              name: donor.name,
+                              city: donor.city
+                            });
                           } else {
-                            setMapModal({ query: selectedEntry.matchedDonation.donor?.city || '' });
+                            setMapModal({ query: donor?.city || '' });
                           }
                         }}
                         className="px-3 py-1.5 bg-blue-100 hover:bg-blue-200 text-blue-700 rounded-lg text-sm font-semibold transition"
