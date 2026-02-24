@@ -3,6 +3,7 @@ import { useNavigate, Link } from "react-router-dom";
 import { toast } from "react-toastify";
 import API from "../services/api";
 import { decimalToDMS, dmsToDecimal } from "../utils/coordinates";
+import { EyeOpen, EyeClosed } from "../components/EyeIcons";
 
 function Register() {
   const navigate = useNavigate();
@@ -10,6 +11,7 @@ function Register() {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [phone, setPhone] = useState("");
   const [state, setState] = useState("");
   const [district, setDistrict] = useState("");
@@ -365,7 +367,24 @@ function Register() {
                 <label className="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1.5">
                   Password <span className="text-red-400 normal-case">*</span>
                 </label>
-                <input type="password" className={inputClass} placeholder="Create a strong password" required value={password} onChange={(e) => setPassword(e.target.value)} />
+                <div className="relative">
+                  <input
+                    type={showPassword ? "text" : "password"}
+                    className={`${inputClass} pr-10`}
+                    placeholder="Create a strong password"
+                    required
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                  />
+                  <button
+                    type="button"
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-green-600 transition"
+                    tabIndex={-1}
+                    onClick={() => setShowPassword((v) => !v)}
+                  >
+                    {showPassword ? <EyeOpen /> : <EyeClosed />}
+                  </button>
+                </div>
               </div>
             </div>
           )}
