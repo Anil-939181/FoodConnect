@@ -31,8 +31,8 @@ function App() {
     <div className="min-h-screen bg-gray-100">
       <Loading />
       <ToastContainer
-        position="top-right"
-        autoClose={3000}
+        position="bottom-center"
+        autoClose={1500}
         hideProgressBar={false}
         newestOnTop={true}
         closeOnClick

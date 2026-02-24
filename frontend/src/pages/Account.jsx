@@ -488,7 +488,7 @@ function Account() {
 
               {user?.latitude && user?.longitude ? (
                 <div className="w-full h-full min-h-[250px] rounded-2xl border-4 border-white shadow-lg overflow-hidden relative group">
-                  <div ref={viewMapRef} className="w-full h-full absolu inset-0 z-0 bg-gray-200"></div>
+                  <div ref={viewMapRef} className="w-full h-full absolute inset-0 z-0 bg-gray-200"></div>
                   {/* Overlay to prevent exact mapping interaction until edited */}
                   <div className="absolute inset-0 bg-black/5 opacity-0 group-hover:opacity-100 transition duration-300 pointer-events-none flex items-center justify-center z-10">
                   </div>
