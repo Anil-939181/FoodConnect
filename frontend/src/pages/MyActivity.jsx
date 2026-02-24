@@ -422,28 +422,62 @@ function MyActivity() {
           </div>
         )}
 
+        {!loading && filteredData.length === 0 && (
+          <div className="flex flex-col items-center justify-center py-20 px-4 bg-white rounded-3xl shadow-sm border border-gray-100 mb-6">
+            <div className="w-24 h-24 bg-gray-50 rounded-full flex items-center justify-center mb-6 shadow-inner">
+              <svg className="w-12 h-12 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M20 12H4M4 12l4-4M4 12l4 4"></path><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M20 12l-4-4M20 12l-4 4" opacity="0.3"></path></svg>
+            </div>
+            <h3 className="text-2xl font-extrabold text-gray-800 mb-3 text-center">
+              {searchText ? "No matches found" : (role === "donor" ? "No Donations Found" : "No Requests Found")}
+            </h3>
+            <p className="text-gray-500 text-center max-w-md font-medium leading-relaxed">
+              {searchText
+                ? "Try adjusting your search filter or clear the input to see all activity."
+                : (activeTab === "ongoing"
+                  ? (role === "donor"
+                    ? "You don't have any pending or ongoing donations right now. When you choose to donate food, it will appear here so you can easily track its status."
+                    : "You don't have any active ongoing requests right now. Head over to the matches page to explore locally available donations!")
+                  : (role === "donor"
+                    ? "You haven't made any completed donations yet. Any successfully delivered donations will be listed here in your history."
+                    : "You haven't completed any food requests yet. All picked-up donations will move here once complete."))
+              }
+            </p>
+            {activeTab === "ongoing" && !searchText && (
+              <button
+                onClick={() => navigate(role === "donor" ? "/donate" : "/request")}
+                className="mt-8 px-8 py-3 bg-gradient-to-tr from-green-600 to-emerald-500 text-white font-bold rounded-xl shadow-lg shadow-green-500/20 hover:shadow-green-500/30 hover:-translate-y-0.5 transition-all"
+              >
+                {role === "donor" ? "Make a Donation" : "Request Donation "}
+              </button>
+            )}
+          </div>
+        )}
+
         {/* Pagination */}
-        <div className="flex justify-center items-center gap-4 mt-10">
-          <button
-            disabled={page === 1}
-            onClick={() => setPage(prev => prev - 1)}
-            className="px-4 py-2 bg-gray-200 rounded disabled:opacity-50"
-          >
-            Prev
-          </button>
+        {filteredData.length > 0 && (
+          <div className="flex justify-center items-center gap-4 mt-10">
+            <button
+              disabled={page === 1}
+              onClick={() => setPage(prev => prev - 1)}
+              className="px-4 py-2 bg-gray-200 rounded disabled:opacity-50"
+            >
+              Prev
+            </button>
 
-          <span className="font-semibold">
-            Page {page} of {totalPages}
-          </span>
+            <span className="font-semibold">
+              Page {page} of {totalPages}
+            </span>
 
-          <button
-            disabled={page === totalPages}
-            onClick={() => setPage(prev => prev + 1)}
-            className="px-4 py-2 bg-gray-200 rounded disabled:opacity-50"
-          >
-            Next
-          </button>
-        </div>
+            <button
+              disabled={page === totalPages}
+              onClick={() => setPage(prev => prev + 1)}
+              className="px-4 py-2 bg-gray-200 rounded disabled:opacity-50"
+            >
+              Next
+            </button>
+          </div>
+        )}
+
         {/* DELETE CONFIRMATION MODAL */}
         {deleteModal && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
