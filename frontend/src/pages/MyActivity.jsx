@@ -324,12 +324,18 @@ function MyActivity() {
                     </div>
                   )}
 
-                  <div className="flex justify-between items-start mb-4">
-                    <div>
-                      <span className={`${getStatusBadge(entry.status)} uppercase tracking-wider`}>
-                        {entry.status}
-                      </span>
-                      <p className="text-xs text-gray-400 mt-2 font-medium">#{entry._id.slice(-6)}</p>
+                  <div className="flex justify-between items-start mb-4 gap-2">
+                    <div className="flex flex-col gap-2 w-full">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span className={`${getStatusBadge(entry.status)} uppercase tracking-wider`}>
+                          {entry.status}
+                        </span>
+                        <span className="text-[10px] xl:text-xs font-semibold text-gray-500 bg-gray-100 border border-gray-200 rounded-lg px-2 py-1 flex items-center gap-1 shadow-sm whitespace-nowrap">
+                          <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                          {new Date(entry.updatedAt).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })}
+                        </span>
+                      </div>
+                      <p className="text-xs text-gray-400 font-medium">#{entry._id.slice(-6)}</p>
                     </div>
 
                     {/* Subtle Edit / Delete in top right */}

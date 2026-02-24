@@ -203,7 +203,7 @@ exports.getMyActiveDonations = async (req, res) => {
                 "requestedBy",
                 "name email phone city state district pincode latitude longitude latDegrees latMinutes latSeconds lonDegrees lonMinutes lonSeconds address role"
             )
-            .sort({ createdAt: -1 })
+            .sort({ updatedAt: -1 })
             .skip(skip)
             .limit(limit);
 
