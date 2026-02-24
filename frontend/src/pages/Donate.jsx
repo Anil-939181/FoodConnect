@@ -1,8 +1,10 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import API from "../services/api";
 import { toast } from "react-toastify";
 
 function Donate() {
+  const navigate = useNavigate();
   const [items, setItems] = useState([
     { name: "", quantity: "", unit: "units" }
   ]);
@@ -91,6 +93,9 @@ function Donate() {
       setExpiryTime("");
       setFoodImageFile(null);
       setImagePreview(null);
+
+      // Redirect to My Activity
+      navigate("/my-activity");
 
     } catch (error) {
       toast.error(error.response?.data?.message || "Error creating donation");
