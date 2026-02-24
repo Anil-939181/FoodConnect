@@ -19,6 +19,7 @@ app.use("/api/donations", require("./routes/donationRoutes"));
 app.use("/api/requests", require("./routes/requestRoutes"));
 app.use("/api/match", require("./routes/matchRoutes"));
 app.use("/api/dashboard", require("./routes/dashboardRoutes"));
+app.use("/api/contact", require("./routes/contactRoutes"));
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {

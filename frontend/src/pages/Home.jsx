@@ -457,8 +457,8 @@ function Home() {
           <div>
             <h3 className="text-white font-bold uppercase tracking-wider text-sm mb-6">Legal</h3>
             <ul className="space-y-3 font-medium">
-              <li><a href="#" className="hover:text-green-400 transition-colors">Privacy Policy</a></li>
-              <li><a href="#" className="hover:text-green-400 transition-colors">Terms of Service</a></li>
+              <li><Link to="/privacy-policy" className="hover:text-green-400 transition-colors">Privacy Policy</Link></li>
+              <li><Link to="/terms-of-service" className="hover:text-green-400 transition-colors">Terms of Service</Link></li>
             </ul>
           </div>
         </div>

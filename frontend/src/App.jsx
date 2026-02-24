@@ -13,6 +13,13 @@ import Home from "./pages/Home";
 import ForgotPassword from "./pages/ForgotPassword";
 import ResetPassword from "./pages/ResetPassword";
 
+// Footer Pages
+import AboutUs from "./pages/AboutUs";
+import ContactUs from "./pages/ContactUs";
+import KnowledgeBase from "./pages/KnowledgeBase";
+import PrivacyPolicy from "./pages/PrivacyPolicy";
+import TermsOfService from "./pages/TermsOfService";
+
 import Matches from "./pages/Matches";
 import MyActivity from "./pages/MyActivity";
 import EditDonation from "./pages/EditDonation";
@@ -44,6 +51,13 @@ function App() {
 
         <Route path="/forgot-password" element={<ForgotPassword />} />
         <Route path="/reset-password" element={<ResetPassword />} />
+
+        {/* Footer Pages */}
+        <Route path="/about" element={<AboutUs />} />
+        <Route path="/contact" element={<ContactUs />} />
+        <Route path="/faq" element={<KnowledgeBase />} />
+        <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+        <Route path="/terms-of-service" element={<TermsOfService />} />
 
         <Route
           path="/dashboard"
