@@ -19,7 +19,7 @@ const startExpiryChecker = () => {
             );
 
             if (result.modifiedCount > 0) {
-                console.log(`${result.modifiedCount} donations marked as expired`);
+                // Background job completed silently
             }
 
         } catch (error) {

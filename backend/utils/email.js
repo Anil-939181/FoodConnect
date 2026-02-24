@@ -43,7 +43,6 @@ class EmailService {
           raw: rawMessage
         }
       });
-      console.log('Email sent successfully:', result.data.id);
       return result.data;
     } catch (error) {
       console.error('Error sending email:', error);

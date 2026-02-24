@@ -12,7 +12,6 @@ exports.register = async (req, res) => {
       latDegrees, latMinutes, latSeconds,
       lonDegrees, lonMinutes, lonSeconds
     } = req.body;
-    console.log(role);
     const existingUser = await User.findOne({ email });
     if (existingUser) {
       return res.status(400).json({ message: "User already exists" });
@@ -116,7 +115,6 @@ exports.sendOtp = async (req, res) => {
     }
     // Generate 6-digit OTP
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
-    console.log("otp :", otp);
     // Store OTP in-memory or DB (for demo, attach to user if exists)
     let user = await User.findOne({ email });
     if (!user && purpose === "RESET") {
