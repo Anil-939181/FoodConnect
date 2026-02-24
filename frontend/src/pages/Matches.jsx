@@ -15,12 +15,24 @@ function Matches() {
   const [hasMore, setHasMore] = useState(true);
   const [loading, setLoading] = useState(false);
 
-  const [radius, setRadius] = useState(10);
+  const [distanceRange, setDistanceRange] = useState("0-50");
   const [mealType, setMealType] = useState("");
   const [itemFilter, setItemFilter] = useState("");
   const [sortBy, setSortBy] = useState("best");
 
   const [selectedMap, setSelectedMap] = useState(null);
+
+  const getDistanceLabel = (range) => {
+    switch (range) {
+      case "0-50": return "1 - 50 km";
+      case "50-100": return "51 - 100 km";
+      case "100-350": return "101 - 350 km";
+      case "350-500": return "351 - 500 km";
+      case "500-plus": return "> 500 km";
+      case "all": return "Any Distance";
+      default: return "Within 50 km";
+    }
+  };
 
   // Fetch user location on mount
   useEffect(() => {
@@ -47,7 +59,7 @@ function Matches() {
         ...searchData,
         latitude: userLocation.latitude,
         longitude: userLocation.longitude,
-        radius,
+        distanceRange,
         mealType,
         page: reset ? 1 : page,
         limit: 10
@@ -81,7 +93,7 @@ function Matches() {
       setHasMore(true);
       fetchMatches(true);
     }
-  }, [radius, mealType, userLocation]);
+  }, [distanceRange, mealType, userLocation]);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -209,19 +221,26 @@ function Matches() {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 items-end">
 
             <div className="space-y-2">
-              <label className="flex justify-between text-sm font-semibold text-gray-700">
-                <span>Distance Radius</span>
-                <span className="text-green-600 font-bold">{radius} km</span>
+              <label className="block text-sm font-semibold text-gray-700">
+                Distance Range
               </label>
-              <input
-                type="range"
-                min="5"
-                max="50"
-                step="5"
-                value={radius}
-                onChange={(e) => setRadius(Number(e.target.value))}
-                className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-green-600"
-              />
+              <div className="relative">
+                <select
+                  value={distanceRange}
+                  onChange={(e) => setDistanceRange(e.target.value)}
+                  className="w-full appearance-none bg-gray-50 border border-gray-200 text-gray-700 py-2.5 px-4 pr-10 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all font-medium"
+                >
+                  <option value="0-50">1 to 50 km</option>
+                  <option value="50-100">51 to 100 km</option>
+                  <option value="100-350">101 to 350 km</option>
+                  <option value="350-500">351 to 500 km</option>
+                  <option value="500-plus">Greater than 500 km</option>
+                  <option value="all">Any Distance</option>
+                </select>
+                <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-gray-500">
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path></svg>
+                </div>
+              </div>
             </div>
 
             <div className="space-y-2">
@@ -319,7 +338,7 @@ function Matches() {
                       <span className="truncate max-w-[120px]">{donation.donor?.city || "Unknown Location"}</span>
                       <span className="mx-1 text-gray-300">•</span>
                       <span className="text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full text-xs font-bold border border-emerald-100 whitespace-nowrap">
-                        {donation.distance ? `${donation.distance.toFixed(1)} km` : `< ${radius} km`}
+                        {donation.distance ? `${donation.distance.toFixed(1)} km` : getDistanceLabel(distanceRange)}
                       </span>
                     </div>
                   </div>

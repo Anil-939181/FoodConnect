@@ -33,7 +33,7 @@ exports.searchMatches = async (req, res) => {
       requestedItems = [],
       latitude,
       longitude,
-      radius = 20,
+      distanceRange = "0-50",
       mealType,
       requiredBefore,
       page = 1,
@@ -47,6 +47,24 @@ exports.searchMatches = async (req, res) => {
     const pageNumber = Number(page);
     const pageLimit = Number(limit);
     const skip = (pageNumber - 1) * pageLimit;
+
+    // Parse Distance Range
+    let minRadius = 0;
+    let maxRadius = 50;
+    let anyDistance = false;
+
+    if (distanceRange === "all") {
+      anyDistance = true;
+    } else if (distanceRange === "500-plus") {
+      minRadius = 500;
+      maxRadius = Infinity;
+    } else if (distanceRange) {
+      const parts = distanceRange.split("-");
+      if (parts.length === 2) {
+        minRadius = Number(parts[0]);
+        maxRadius = Number(parts[1]);
+      }
+    }
 
     // 🔥 Base Query Conditions
     const baseQuery = {
@@ -91,7 +109,18 @@ exports.searchMatches = async (req, res) => {
       }
 
       const distKm = haversineDistanceKm(Number(latitude), Number(longitude), donorLat, donorLon);
-      if (distKm <= Number(radius)) {
+      const isDistanceZero = distKm === 0;
+
+      let inRange = anyDistance;
+      if (!anyDistance) {
+        if (minRadius === 0 && isDistanceZero) {
+          inRange = true;
+        } else if (distKm > minRadius && distKm <= maxRadius) {
+          inRange = true;
+        }
+      }
+
+      if (inRange) {
         donationsWithDistance.push({
           ...donation,
           donor: { name: donor.name, city: donor.city, latitude: donorLat, longitude: donorLon },
