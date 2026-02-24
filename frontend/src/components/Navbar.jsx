@@ -30,7 +30,7 @@ function Navbar() {
       }
     };
     fetchUser();
-  }, [token, location.pathname]); // Re-fetch occasionally or on route change just to be somewhat fresh
+  }, [token]);
 
   // Close menus when route changes
   useEffect(() => {

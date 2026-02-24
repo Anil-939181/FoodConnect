@@ -12,11 +12,13 @@ API.interceptors.request.use(
     (req) => {
         // increment loading counter for each outgoing request
         const url = req.url || '';
-        let type = 'default';
-        if (url.includes('/match/request')) {
-            type = 'connecting';
+        if (!url.includes('/auth/me') && !url.includes('/auth/check')) {
+            let type = 'default';
+            if (url.includes('/match/request')) {
+                type = 'connecting';
+            }
+            show({ type });
         }
-        show({ type });
         const token = localStorage.getItem("token");
         if (token) {
             req.headers.Authorization = `Bearer ${token}`;
@@ -24,19 +26,27 @@ API.interceptors.request.use(
         return req;
     },
     (error) => {
-        // ensure loading is decremented on request error
-        hide();
+        const url = error.config?.url || '';
+        if (!url.includes('/auth/me') && !url.includes('/auth/check')) {
+            hide();
+        }
         return Promise.reject(error);
     }
 );
 
 API.interceptors.response.use(
     (res) => {
-        hide();
+        const url = res.config?.url || '';
+        if (!url.includes('/auth/me') && !url.includes('/auth/check')) {
+            hide();
+        }
         return res;
     },
     (error) => {
-        hide();
+        const url = error.config?.url || '';
+        if (!url.includes('/auth/me') && !url.includes('/auth/check')) {
+            hide();
+        }
         return Promise.reject(error);
     }
 );
