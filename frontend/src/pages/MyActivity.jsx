@@ -42,18 +42,12 @@ function MyActivity() {
   }, []);
 
   useEffect(() => {
-    fetchHistory(page);
+    const delayDebounceFn = setTimeout(() => {
+      fetchHistory(page);
+    }, 300);
+    return () => clearTimeout(delayDebounceFn);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [page]);
-
-  useEffect(() => {
-    if (page === 1) {
-      fetchHistory(1);
-    } else {
-      setPage(1);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activeTab, searchText]);
+  }, [page, activeTab, searchText]);
 
   // When selectedEntry changes, compute distance using user location
   useEffect(() => {
@@ -264,7 +258,10 @@ function MyActivity() {
 
           <div className="flex bg-gray-100 p-1.5 rounded-xl w-full md:w-auto">
             <button
-              onClick={() => setActiveTab("ongoing")}
+              onClick={() => {
+                setActiveTab("ongoing");
+                if (page !== 1) setPage(1);
+              }}
               className={`flex-1 md:flex-none px-6 py-2.5 rounded-lg font-bold text-sm transition-all duration-300 ${activeTab === "ongoing"
                 ? "bg-white text-green-700 shadow-sm"
                 : "text-gray-500 hover:text-gray-700"
@@ -273,7 +270,10 @@ function MyActivity() {
               Ongoing Activity
             </button>
             <button
-              onClick={() => setActiveTab("completed")}
+              onClick={() => {
+                setActiveTab("completed");
+                if (page !== 1) setPage(1);
+              }}
               className={`flex-1 md:flex-none px-6 py-2.5 rounded-lg font-bold text-sm transition-all duration-300 ${activeTab === "completed"
                 ? "bg-white text-green-700 shadow-sm"
                 : "text-gray-500 hover:text-gray-700"
@@ -288,7 +288,10 @@ function MyActivity() {
               type="text"
               placeholder="Search items..."
               value={searchText}
-              onChange={(e) => setSearchText(e.target.value)}
+              onChange={(e) => {
+                setSearchText(e.target.value);
+                if (page !== 1) setPage(1);
+              }}
               className="w-full bg-gray-50 border border-gray-200 text-gray-700 py-2.5 pl-10 pr-4 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all font-medium placeholder-gray-400"
             />
             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
