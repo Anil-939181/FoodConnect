@@ -1,6 +1,7 @@
 import { initializeApp } from "firebase/app";
 import { getAuth, GoogleAuthProvider } from "firebase/auth";
 
+console.log(import.meta.env.VITE_FIREBASE_API_KEY || "DUMMY_API_KEY");
 // Replace these with your actual Firebase project configuration keys
 const firebaseConfig = {
     apiKey: import.meta.env.VITE_FIREBASE_API_KEY || "DUMMY_API_KEY",

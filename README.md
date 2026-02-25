@@ -2,7 +2,6 @@
 
 A full-stack MERN application aimed at reducing food waste by connecting generous **Donors** (individuals, restaurants, event organizers) with verified **Organizations** (NGOs, orphanages, shelters) in real-time. 
 
-
 ## 🌟 Key Features
 
 * **Role-Based Access Control**: Separate workflows and dedicated dashboards for `Donors` and `Organizations`.
@@ -94,7 +93,7 @@ cd food-donation
 Navigate to `http://localhost:5173` in your browser. Register as a Donor or Organization to get started!
 
 ## 🤝 Contributing
-Contributions, issues, and feature requests are welcome! Feel free to check the [issues page](https://github.com/your-username/food-donation/issues).
+Contributions, issues, and feature requests are welcome! Feel free to check the 
 
 ---
 *Built with ❤️ to connect communities and end food waste.*
