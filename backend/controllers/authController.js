@@ -93,6 +93,32 @@ exports.login = async (req, res) => {
   }
 };
 
+// Google Login
+exports.googleLogin = async (req, res) => {
+  try {
+    const { email } = req.body;
+
+    // Allow login only if email exists
+    const user = await User.findOne({ email });
+    if (!user) {
+      return res.status(404).json({ message: "Account not found. Please register manually." });
+    }
+
+    // Generate token
+    const token = jwt.sign(
+      { id: user._id, role: user.role },
+      process.env.JWT_SECRET,
+      { expiresIn: "1d" }
+    );
+
+    const role = user.role;
+    res.json({ token, role });
+
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
 // Get current user
 exports.getCurrentUser = async (req, res) => {
   try {

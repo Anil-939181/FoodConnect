@@ -7,7 +7,7 @@ function KnowledgeBase() {
     const faqs = [
         {
             question: "How do I donate food?",
-            answer: "Click on the 'Donate Food' button on your dashboard. Fill out the details about the food, quantity, and expiry time. Organizations nearby will be notified."
+            answer: "Click on the 'Donate' button. Fill out the details about the food, quantity, and expiry time. Organizations nearby will be notified."
         },
         {
             question: "Who can receive the food?",
