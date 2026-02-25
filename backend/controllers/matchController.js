@@ -331,7 +331,7 @@ exports.approveDonation = async (req, res) => {
           <ul>${itemsHtml}</ul>
           <p>Meal type: <b>${donation.mealType || "N/A"}</b></p>
           <p>Expiry: <b>${donation.expiryTime ? new Date(donation.expiryTime).toLocaleString() : "N/A"}</b></p>
-          <p>Please coordinate pickup via the app. Donor personal contact details will be shared only after you mark the match completed.</p>
+          <p>Please review the reservation in your Activity. Donor personal contact details will be shared once you accept the match.</p>
         `;
         const html = baseEmailTemplate(subject, htmlContent, 'approve');
         await sendCustomEmail({ to: orgUser.email, subject, html });
@@ -378,24 +378,48 @@ exports.acceptMatch = async (req, res) => {
       { status: "rejected" }
     );
 
-    // notify donor that org accepted
+    // notify donor and org with contact details
     try {
       const orgUser = await User.findById(request.requester).select("name email phone");
-      const donorUser = await User.findById(donation.donor).select("name email");
+      const donorUser = await User.findById(donation.donor).select("name email phone");
+      const itemsHtml = (donation.items || []).map(i => `<li>${i.name} — ${i.quantity} ${i.unit || ""}</li>`).join("");
+
+      // Email to Donor
       if (donorUser?.email) {
-        const subject = `Request Accepted by Organization`;
-        const itemsHtml = (donation.items || []).map(i => `<li>${i.name} — ${i.quantity} ${i.unit || ""}</li>`).join("");
-        const htmlContent = `
+        const subjectDonor = `Organization Accepted Your Donation - Contact Info`;
+        const htmlContentDonor = `
           <p>Hi ${donorUser.name || "donor"},</p>
           <p><b>${orgUser?.name || "The organization"}</b> has accepted your donation and will coordinate pickup.</p>
+          <p><b>Organization Contact Details:</b></p>
+          <p>Name: ${orgUser?.name || "Organization"}</p>
+          <p>Phone: ${orgUser?.phone || "N/A"}</p>
+          <p>Email: ${orgUser?.email || "N/A"}</p>
           <p><b>Donation details:</b></p>
           <ul>${itemsHtml}</ul>
         `;
-        const html = baseEmailTemplate(subject, htmlContent, 'complete');
-        await sendCustomEmail({ to: donorUser.email, subject, html });
+        const htmlDonor = baseEmailTemplate(subjectDonor, htmlContentDonor, 'complete');
+        await sendCustomEmail({ to: donorUser.email, subject: subjectDonor, html: htmlDonor });
       }
+
+      // Email to Org
+      if (orgUser?.email) {
+        const subjectOrg = `Donation Accepted - Donor Contact Info`;
+        const htmlContentOrg = `
+          <p>Hi ${orgUser?.name || "partner"},</p>
+          <p>You have successfully accepted the donation. Please contact the donor to coordinate pickup.</p>
+          <p><b>Donor Contact Details:</b></p>
+          <p>Name: ${donorUser?.name || "Donor"}</p>
+          <p>Phone: ${donorUser?.phone || "N/A"}</p>
+          <p>Email: ${donorUser?.email || "N/A"}</p>
+          <p><b>Donation details:</b></p>
+          <ul>${itemsHtml}</ul>
+        `;
+        const htmlOrg = baseEmailTemplate(subjectOrg, htmlContentOrg, 'complete');
+        await sendCustomEmail({ to: orgUser.email, subject: subjectOrg, html: htmlOrg });
+      }
+
     } catch (e) {
-      console.error("Error sending accept email:", e.message);
+      console.error("Error sending accept emails:", e.message);
     }
 
     res.json({ message: "Request accepted successfully" });
@@ -450,8 +474,6 @@ exports.deliverMatch = async (req, res) => {
         <p>Your donation has been marked delivered by the organization.</p>
         <p><b>Donation details:</b></p>
         <ul>${itemsHtml}</ul>
-        <p>Organization contact:</p>
-        <p>${orgUser?.name || "Organization"}${orgUser?.phone ? ` — Phone: ${orgUser.phone}` : ""}${orgUser?.email ? ` — Email: ${orgUser.email}` : ""}</p>
         <p>Thank you for donating.</p>
       `;
       const htmlOrg = baseEmailTemplate(subject, htmlOrgContent, 'complete');
